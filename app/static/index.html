@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="brand.title">ಕರ್ನಾಟಕ ಕೈಮಗ್ಗ ಸಹಕಾರ ಡಿಜಿಟಲ್ ವೇದಿಕೆ | Karnataka Handloom Cooperative SaaS</title>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧵</text></svg>">
+</head>
+<body>
+
+  <!-- ====================================================
+       1. LANDING PAGE EXPERIENCE (FIRST CONTACT)
+  ==================================================== -->
+  <section id="landing-section" style="display:none; padding:2rem 1.5rem;">
+    <div style="max-width:960px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <div class="brand-crest">ಕೈ</div>
+        <div>
+          <h1 style="font-size:1.15rem; font-weight:800; color:var(--primary-navy);" data-i18n="brand.title">ಕರ್ನಾಟಕ ಕೈಮಗ್ಗ ಸಹಕಾರ ಡಿಜಿಟಲ್ ವೇದಿಕೆ</h1>
+          <div style="font-size:0.75rem; color:var(--text-dim);" data-i18n="brand.subtitle">ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘಗಳ ಡಿಜಿಟಲ್ ಕಾರ್ಯಾಚರಣೆ ತಂತ್ರಾಂಶ (SaaS)</div>
+        </div>
+      </div>
+      <button class="btn-inst btn-inst-secondary" id="landing-lang-btn" onclick="toggleLanguage()">🌐 English</button>
+    </div>
+
+    <div class="landing-hero">
+      <div style="font-size:2.5rem; margin-bottom:0.5rem;">🏛️ 🧵 📜</div>
+      <h2 data-i18n="onb.hero_title">ಕರ್ನಾಟಕದ ಕೈಮಗ್ಗ ಸಹಕಾರ ಸಂಘಗಳಿಗೆ ಡಿಜಿಟಲ್ ಕೇಂದ್ರ</h2>
+      <p data-i18n="onb.hero_subtitle">
+        ಪ್ರತಿಯೊಂದು ಸಹಕಾರ ಸಂಘವು ತನ್ನದೇ ಆದ ಡಿಜಿಟಲ್ ಹೆಡ್‌ಕ್ವಾರ್ಟರ್ಸ್ ಸ್ಥಾಪಿಸಿ ನೇಕಾರರು, ನೂಲು ಹಂಚಿಕೆ, ಮಗ್ಗದ ಕೂಲಿ, ಮಾರಾಟ ಮತ್ತು ಸರ್ಕಾರಿ ರಿಯಾಯಿತಿಗಳನ್ನು ಸುಲಭವಾಗಿ ನಿರ್ವಹಿಸಬಹುದು.
+      </p>
+
+      <div class="landing-hero-actions">
+        <button class="btn-inst btn-inst-primary" style="padding:0.85rem 1.5rem; font-size:1rem;" onclick="startOnboardingWizard()" data-i18n="onb.start_btn">
+          ಹೊಸ ಸಂಘದ ನೋಂದಣಿ ಪ್ರಾರಂಭಿಸಿ →
+        </button>
+      </div>
+
+      <div style="margin-top:2.5rem; border-top:1px solid var(--border-card); padding-top:1.5rem;">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.04em;">
+          ಪ್ರಾಯೋಗಿಕ ಸಂಘಗಳ ಡಿಜಿಟಲ್ ಪ್ರವೇಶ (Pilot Society Demonstrations):
+        </div>
+        <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+          <button class="btn-inst btn-inst-secondary" style="padding:0.6rem 1.1rem;" onclick="quickAccessTenant('gadag-weavers-coop')">
+            🏛️ ಗದಗ ಹತ್ತಿ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ
+          </button>
+          <button class="btn-inst btn-inst-secondary" style="padding:0.6rem 1.1rem;" onclick="quickAccessTenant('ilkal-sari-coop')">
+            🏛️ ಇಳಕಲ್ ಸಾಂಪ್ರದಾಯಿಕ ಸೀರೆ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================
+       2. DIGITAL HEADQUARTERS APP SHELL
+  ==================================================== -->
+  <div id="app-shell" style="display:none;">
+
+    <!-- Top Institutional Banner -->
+    <header class="navbar-banner">
+      <div class="brand-section">
+        <div class="brand-crest">ಕೈ</div>
+        <div class="brand-titles">
+          <h1 data-i18n="brand.title">ಕರ್ನಾಟಕ ಕೈಮಗ್ಗ ಸಹಕಾರ ಡಿಜಿಟಲ್ ವೇದಿಕೆ</h1>
+          <div class="subtitle" data-i18n="brand.subtitle">ಡಿಜಿಟಲ್ ಕಾರ್ಯಾಚರಣೆ ತಂತ್ರಾಂಶ (Digital Headquarters)</div>
+        </div>
+      </div>
+
+      <div class="banner-controls">
+        <div class="tenant-active-badge">
+          <span class="badge-indicator"></span>
+          <span id="tenant-name-badge" style="font-weight:700;">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</span>
+        </div>
+
+        <!-- Quick Switch Societies to observe multi-tenant isolation -->
+        <button class="btn-switch-tenant" onclick="quickAccessTenant('gadag-weavers-coop')" title="ಗದಗ ಸಂಘ">
+          🏛️ ಗದಗ (Gadag)
+        </button>
+        <button class="btn-switch-tenant" onclick="quickAccessTenant('ilkal-sari-coop')" title="ಇಳಕಲ್ ಸಂಘ">
+          🏛️ ಇಳಕಲ್ (Ilkal)
+        </button>
+
+        <button class="btn-lang" id="lang-toggle-btn" onclick="toggleLanguage()">
+          English
+        </button>
+      </div>
+    </header>
+
+    <!-- Secondary Operational Navigation -->
+    <nav class="operational-nav">
+      <button class="op-nav-btn active" data-section="operations" data-i18n="nav.operations">ಕಾರ್ಯಾಚರಣೆ ಕೇಂದ್ರ</button>
+      <button class="op-nav-btn" data-section="weavers" data-i18n="nav.weavers">ನೇಕಾರರ ಕಾರ್ಯಕ್ಷೇತ್ರ</button>
+      <button class="op-nav-btn" data-section="production" data-i18n="nav.production">ಗೃಹ ಕೈಮಗ್ಗ ಉತ್ಪಾದನೆ (ಹಂಚಿಕೆ)</button>
+      <button class="op-nav-btn" data-section="inventory" data-i18n="nav.inventory">ವಸ್ತು ಮತ್ತು ದಾಸ್ತಾನು</button>
+      <button class="op-nav-btn" data-section="sales" data-i18n="nav.sales">ಮಾರಾಟ ಮತ್ತು ಮಳಿಗೆ</button>
+      <button class="op-nav-btn" data-section="reports" data-i18n="nav.reports">ಶಾಸನಬದ್ಧ ವರದಿಗಳು</button>
+      <button class="op-nav-btn" data-section="onboarding" data-i18n="nav.onboard_new" style="margin-left:auto; color:var(--primary-gold); font-weight:700;">
+        + ಹೊಸ ಸಂಘದ ನೋಂದಣಿ
+      </button>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="main-wrapper">
+      <section id="sec-operations" class="content-section active"></section>
+      <section id="sec-weavers" class="content-section"></section>
+      <section id="sec-production" class="content-section"></section>
+      <section id="sec-inventory" class="content-section"></section>
+      <section id="sec-sales" class="content-section"></section>
+      <section id="sec-reports" class="content-section"></section>
+      <section id="sec-onboarding" class="content-section"></section>
+    </main>
+
+  </div>
+
+  <!-- ====================================================
+       MODALS
+  ==================================================== -->
+
+  <!-- Modal: Weaver Operational Profile -->
+  <div class="modal-overlay" id="modal-weaver-profile" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 style="font-size:1rem; color:var(--primary-navy);">ನೇಕಾರರ ಕಾರ್ಯಾಚರಣಾ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಪಾಸ್‌ಬುಕ್</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body" id="profile-modal-body"></div>
+      <div class="modal-foot">
+        <button class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ಮುಚ್ಚಿ (Close)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Printable Bilingual Bill -->
+  <div class="modal-overlay" id="modal-bill" style="display:none;">
+    <div class="modal-dialog" style="max-width:520px;">
+      <div class="modal-head">
+        <h3 style="font-size:1rem; color:var(--primary-crimson);">ತೆರಿಗೆ ಸರಕುಪಟ್ಟಿ ಮತ್ತು ರಶೀದಿ ಮುನ್ನೋಟ</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body" id="bill-document-content"></div>
+      <div class="modal-foot">
+        <button class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ಮುಚ್ಚಿ (Close)</button>
+        <button class="btn-inst btn-inst-primary" onclick="printBillDocument()">🖨️ ಮುದ್ರಿಸಿ (Print Document)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Register New Weaver -->
+  <div class="modal-overlay" id="modal-add-weaver" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 style="font-size:1rem; color:var(--primary-navy);">+ ಹೊಸ ನೇಕಾರ ಸದಸ್ಯರ ನೋಂದಣಿ</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleWeaverSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">ಸದಸ್ಯತ್ವ ಸಂಖ್ಯೆ *</label>
+              <input type="text" id="nw-mbr" class="form-input" required value="MBR/GDG/003" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ನೇಕಾರರ ಹೆಸರು (ಕನ್ನಡ) *</label>
+              <input type="text" id="nw-name-kn" class="form-input" required value="ಈರಪ್ಪ ಹಡಪದ" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Weaver Name (English) *</label>
+              <input type="text" id="nw-name-en" class="form-input" required value="Eerappa Hadapad" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಗ್ರಾಮ / ಊರು *</label>
+              <input type="text" id="nw-village" class="form-input" required value="ಬೆಟಗೇರಿ" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ತಾಲೂಕು *</label>
+              <input type="text" id="nw-taluk" class="form-input" required value="Gadag" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಮಗ್ಗದ ಮಾದರಿ</label>
+              <select id="nw-loom-type" class="form-input">
+                <option value="PIT_LOOM">ಗುಂಡಿ ಮಗ್ಗ (Pit Loom)</option>
+                <option value="FRAME_LOOM" selected>ಚೌಕಟ್ಟಿನ ಮಗ್ಗ (Frame Loom)</option>
+                <option value="JACQUARD_LOOM">ಜಾಕ್ವಾರ್ಡ್ ಮಗ್ಗ (Jacquard)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಕಾರ್ಯನಿರತ ಮಗ್ಗಗಳ ಸಂಖ್ಯೆ</label>
+              <input type="number" id="nw-looms" class="form-input" value="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಪೆಹ್ಚಾನ್ ಕಾರ್ಡ್ (Pehchan ID)</label>
+              <input type="text" id="nw-pehchan" class="form-input" value="KNT-GDG-100889" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary">ನೇಕಾರರನ್ನು ಉಳಿಸಿ ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script>
+    async function handleWeaverSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        membership_no: document.getElementById('nw-mbr').value,
+        full_name_kn: document.getElementById('nw-name-kn').value,
+        full_name_en: document.getElementById('nw-name-en').value,
+        village: document.getElementById('nw-village').value,
+        taluk: document.getElementById('nw-taluk').value,
+        loom_type: document.getElementById('nw-loom-type').value,
+        active_looms_count: parseInt(document.getElementById('nw-looms').value) || 1,
+        pehchan_card_id: document.getElementById('nw-pehchan').value,
+        thrift_fund_rate: 8.0
+      };
+      try {
+        await api.createWeaver(payload);
+        closeAllModals();
+        loadWeaversSection();
+        alert('ನೇಕಾರ ಸದಸ್ಯರನ್ನು ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲಾಗಿದೆ!');
+      } catch (err) {
+        alert('ನೇಕಾರ ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

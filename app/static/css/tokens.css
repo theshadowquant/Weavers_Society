@@ -1,0 +1,61 @@
+/* Design Tokens: Karnataka Handloom Cooperative Institution */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Institutional Cooperative Color Identity */
+  --primary-navy: #16243b;
+  /* Deep Co-operative Navy */
+  --primary-navy-hover: #0f1a2c;
+  --primary-crimson: #8c1d2e;
+  /* Heritage Sindhoor Red */
+  --primary-gold: #b8860b;
+  /* Karnataka Handloom Zari Gold */
+  --primary-gold-hover: #996f08;
+  --primary-gold-light: #fdf8eb;
+
+  --accent-emerald: #137547;
+  /* Certified / Positive Status */
+  --accent-emerald-light: #edfbf3;
+  --accent-amber: #b45309;
+  /* Overdue / Warning */
+  --accent-amber-light: #fffbeb;
+  --accent-rose: #9f1239;
+  /* Rejection / Critical */
+  --accent-rose-light: #fff1f2;
+
+  /* Institutional Paper & Ledger Surfaces (High Contrast, Daylight Readable) */
+  --bg-app: #f6f7f9;
+  /* Institutional soft cool grey */
+  --bg-surface: #ffffff;
+  /* Crisp paper card */
+  --bg-surface-elevated: #fbfbfd;
+  --bg-header: #16243b;
+  /* Prestigious dark navy banner */
+
+  --border-card: #e5e7eb;
+  --border-strong: #d1d5db;
+  --border-focus: #b8860b;
+
+  /* Typography */
+  --text-main: #111827;
+  /* High contrast black/slate */
+  --text-muted: #4b5563;
+  /* Secondary descriptive text */
+  --text-dim: #6b7280;
+  /* Helper labels */
+  --text-inverse: #ffffff;
+  --text-gold: #d4a017;
+
+  --font-body: 'Outfit', 'Noto Sans Kannada', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-kannada: 'Noto Sans Kannada', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Clean Institutional Shadows (No glowing neon) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
