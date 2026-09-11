@@ -62,6 +62,10 @@ def finalize_society_onboarding(data: OnboardingFinalizeRequest) -> Dict[str, An
         if cursor.fetchone():
             slug = f"{slug}-{uuid.uuid4().hex[:4]}"
             
+        cursor.execute("SELECT id FROM tenants WHERE registration_number = ?", (data.registration_number,))
+        if cursor.fetchone():
+            data.registration_number = f"{data.registration_number}-{uuid.uuid4().hex[:4]}"
+            
         # 1. Insert Tenant Record
         conn.execute("""
             INSERT INTO tenants (
@@ -79,12 +83,17 @@ def finalize_society_onboarding(data: OnboardingFinalizeRequest) -> Dict[str, An
             data.members_count, data.active_looms_count
         ))
         
-        # 2. Insert Society Administrator
-        pw_hash = hash_password(data.admin_password)
-        conn.execute("""
-            INSERT INTO users (id, email, phone, full_name, password_hash, preferred_language)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (user_id, data.primary_email, data.primary_phone, data.admin_full_name, pw_hash, data.preferred_language))
+        # 2. Insert or Resolve Society Administrator
+        cursor.execute("SELECT id FROM users WHERE phone = ?", (data.primary_phone,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            user_id = existing_user["id"]
+        else:
+            pw_hash = hash_password(data.admin_password)
+            conn.execute("""
+                INSERT INTO users (id, email, phone, full_name, password_hash, preferred_language)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (user_id, data.primary_email, data.primary_phone, data.admin_full_name, pw_hash, data.preferred_language))
         
         # 3. Bind Role: SECRETARY / MANAGING_DIRECTOR
         conn.execute("""

@@ -15,6 +15,69 @@ const state = {
   cachedProducts: []
 };
 
+// -------------------------------------------------------------------
+// CLIENT-SIDE BIDIRECTIONAL AUTO-TRANSLATION (Kannada <-> English)
+// -------------------------------------------------------------------
+async function translateText(text, fromLang = "kn", toLang = "en") {
+  if (!text || !text.trim()) return "";
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodeURIComponent(text.trim())}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data[0]) {
+      return data[0].map(item => item[0]).join("").trim();
+    }
+  } catch (err) {
+    console.warn("Auto-translate error:", err);
+  }
+  return "";
+}
+
+let translationDebounceTimer = null;
+function setupAutoTranslate(sourceId, targetId, fromLang, toLang) {
+  const src = document.getElementById(sourceId);
+  const tgt = document.getElementById(targetId);
+  if (!src || !tgt) return;
+
+  src.addEventListener("input", () => {
+    clearTimeout(translationDebounceTimer);
+    translationDebounceTimer = setTimeout(async () => {
+      const val = src.value.trim();
+      if (!val) return;
+      if (!tgt.value || tgt.dataset.autoFilled === "true") {
+        const translated = await translateText(val, fromLang, toLang);
+        if (translated) {
+          tgt.value = translated;
+          tgt.dataset.autoFilled = "true";
+        }
+      }
+    }, 650);
+  });
+
+  tgt.addEventListener("input", () => {
+    tgt.dataset.autoFilled = "false";
+  });
+}
+
+async function triggerFieldTranslation(sourceId, targetId, fromLang, toLang) {
+  const src = document.getElementById(sourceId);
+  const tgt = document.getElementById(targetId);
+  if (!src || !tgt) return;
+  const val = src.value.trim();
+  if (!val) return;
+
+  const btn = event?.currentTarget;
+  const originalLabel = btn ? btn.innerText : "";
+  if (btn) btn.innerText = "⏳...";
+
+  const translated = await translateText(val, fromLang, toLang);
+  if (translated) {
+    tgt.value = translated;
+    tgt.dataset.autoFilled = "true";
+  }
+  if (btn) btn.innerText = originalLabel || (fromLang === "kn" ? "🔄 English" : "🔄 ಕನ್ನಡ");
+}
+
 // Application Bootstrap
 document.addEventListener("DOMContentLoaded", async () => {
   setLanguage(localStorage.getItem("society_lang") || "kn");
@@ -972,15 +1035,15 @@ function renderWizardStep() {
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ *</label>
-          <input type="text" id="ob-phone" class="form-input" value="${d.phone || '9845012345'}" />
+          <input type="text" id="ob-phone" class="form-input" placeholder="ಉದಾ: 9845012345" value="${d.phone || ''}" />
         </div>
         <div class="form-group">
           <label class="form-label">ಇಮೇಲ್ (Email)</label>
-          <input type="email" id="ob-email" class="form-input" value="${d.email || 'secretary@udupihandlooms.coop'}" />
+          <input type="email" id="ob-email" class="form-input" placeholder="secretary@society.coop" value="${d.email || ''}" />
         </div>
         <div class="form-group full">
           <label class="form-label">ಲಾಗಿನ್ ಪಾಸ್‌ವರ್ಡ್ *</label>
-          <input type="password" id="ob-password" class="form-input" value="admin123" />
+          <input type="password" id="ob-password" class="form-input" placeholder="ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" value="${d.password || 'admin123'}" />
         </div>
       </div>
     `;
@@ -989,16 +1052,22 @@ function renderWizardStep() {
       <h3 style="color:var(--primary-navy); margin-bottom:1rem;" data-i18n="onb.step2_title">೨. ಸಂಘದ ಶಾಸನಬದ್ಧ ಗುರುತು (Legal Identity)</h3>
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">ಸಂಘದ ಹೆಸರು (ಕನ್ನಡದಲ್ಲಿ) *</label>
-          <input type="text" id="ob-name-kn" class="form-input" value="${d.name_kn || 'ಉಡುಪಿ ಪ್ರಾಥಮಿಕ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ'}" />
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+            <label class="form-label" style="margin-bottom:0;">ಸಂಘದ ಹೆಸರು (ಕನ್ನಡದಲ್ಲಿ) *</label>
+            <button type="button" class="btn-inst btn-inst-secondary" style="font-size:0.75rem; padding:0.2rem 0.55rem;" onclick="triggerFieldTranslation('ob-name-kn', 'ob-name-en', 'kn', 'en')">🔄 Translate to English</button>
+          </div>
+          <input type="text" id="ob-name-kn" class="form-input" placeholder="ಉದಾ: ಗದಗ ಹತ್ತಿ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ" value="${d.name_kn || ''}" />
         </div>
         <div class="form-group">
-          <label class="form-label">Legal Society Name (English) *</label>
-          <input type="text" id="ob-name-en" class="form-input" value="${d.name_en || 'Udupi Primary Handloom Weavers Co-operative Society Ltd.'}" />
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+            <label class="form-label" style="margin-bottom:0;">Legal Society Name (English) *</label>
+            <button type="button" class="btn-inst btn-inst-secondary" style="font-size:0.75rem; padding:0.2rem 0.55rem;" onclick="triggerFieldTranslation('ob-name-en', 'ob-name-kn', 'en', 'kn')">🔄 ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸು</button>
+          </div>
+          <input type="text" id="ob-name-en" class="form-input" placeholder="e.g. Gadag Cotton Handloom Weavers Co-op Society Ltd." value="${d.name_en || ''}" />
         </div>
         <div class="form-group">
           <label class="form-label">ನೋಂದಣಿ ಸಂಖ್ಯೆ (KCS Act 1959) *</label>
-          <input type="text" id="ob-reg-no" class="form-input" value="${d.reg_no || 'DR/KCS/UDP/1985/412'}" />
+          <input type="text" id="ob-reg-no" class="form-input" placeholder="ಉದಾ: DR/KCS/UDP/1985/412" value="${d.reg_no || ''}" />
         </div>
         <div class="form-group">
           <label class="form-label">ನೋಂದಣಿ ದಿನಾಂಕ *</label>
@@ -1125,6 +1194,11 @@ function renderWizardStep() {
       </div>
     </div>
   `;
+
+  if (s === 2) {
+    setupAutoTranslate("ob-name-kn", "ob-name-en", "kn", "en");
+    setupAutoTranslate("ob-name-en", "ob-name-kn", "en", "kn");
+  }
 }
 
 function getStepShortLabel(num) {
@@ -1195,22 +1269,33 @@ async function submitFinalizeSociety() {
   captureCurrentStepValues();
   const d = state.onboardingData;
 
+  const randSuffix = Math.floor(1000 + Math.random() * 9000);
+  let nameEn = d.name_en?.trim();
+  let nameKn = d.name_kn?.trim();
+
+  // Bidirectional auto-fill if one is empty
+  if (!nameEn && nameKn) {
+    nameEn = await translateText(nameKn, "kn", "en");
+  } else if (!nameKn && nameEn) {
+    nameKn = await translateText(nameEn, "en", "kn");
+  }
+
   const payload = {
-    primary_phone: d.phone || "9845012345",
-    primary_email: d.email || null,
+    primary_phone: d.phone || ("98450" + randSuffix),
+    primary_email: d.email || (`admin-${randSuffix}@society.coop`),
     admin_password: d.password || "admin123",
-    admin_full_name: d.admin_name || "Anand Madhyastha",
-    legal_name_en: d.name_en || "Udupi Primary Handloom Weavers Co-operative Society Ltd.",
-    legal_name_kn: d.name_kn || "ಉಡುಪಿ ಪ್ರಾಥಮಿಕ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ",
-    registration_number: d.reg_no || "DR/KCS/UDP/1985/412",
+    admin_full_name: d.admin_name || "Society Administrator",
+    legal_name_en: nameEn || "Karnataka Handloom Weavers Co-operative Society Ltd.",
+    legal_name_kn: nameKn || "ಕರ್ನಾಟಕ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ",
+    registration_number: d.reg_no || (`DR/KCS/${randSuffix}/${new Date().getFullYear()}`),
     registration_date: d.reg_date || "1985-04-12",
     society_type: "PRIMARY_WEAVERS_COOP",
-    district: d.district || "Udupi",
-    taluk: d.taluk || "Brahmavar",
-    hobli_village: d.village || "Brahmavar Town",
-    pincode: d.pin || "576213",
-    registered_office_address: d.address || "Handloom Bhavan, Main Road, Brahmavar",
-    directorate_society_code: d.dept_code || "DTH/UDP/302",
+    district: d.district || "Gadag",
+    taluk: d.taluk || "Gadag",
+    hobli_village: d.village || "Betageri",
+    pincode: d.pin || "582101",
+    registered_office_address: d.address || "Main Weavers Bhavan, Station Road",
+    directorate_society_code: d.dept_code || `DTH/GDG/${randSuffix}`,
     pan: d.pan || null,
     gstin: d.gstin || null,
     bank_account_no: d.bank_acc || null,
