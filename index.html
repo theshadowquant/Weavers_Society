@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ಬನಶ್ರೀ ನೇಕಾರರ ಉತ್ಪಾದನಾ ಮತ್ತು ಮಾರಾಟ ಸಹಕಾರ ಸಂಘ - Digital ERP</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            coop: {
+              50: '#f2fbf6',
+              100: '#e1f6eb',
+              200: '#c5eed9',
+              600: '#15803d',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            karnataka: {
+              red: '#C8102E',
+              yellow: '#FFCC00',
+              gold: '#D97706'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- React 18, ReactDOM, and Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Tiro+Kannada:ital@0;1&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', 'Tiro Kannada', sans-serif;
+    }
+    
+    .kannada-font {
+      font-family: 'Tiro Kannada', serif;
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #printable-area, #printable-area * { visibility: visible !important; }
+      #printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        background: white;
+        color: black;
+      }
+      .no-print { display: none !important; }
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased selection:bg-emerald-200">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // --- BILINGUAL DICTIONARY ---
+    const translations = {
+      kn: {
+        societyName: "ಶ್ರೀ ಬನಶ್ರೀ ನೇಕಾರರ ಉತ್ಪಾದನಾ ಮತ್ತು ಮಾರಾಟ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ",
+        tagline: "ಕೈಮಗ್ಗ ಮತ್ತು ವಿದ್ಯುತ್ ಮಗ್ಗ ಸಮಗ್ರ ಡಿಜಿಟಲ್ ಪೋರ್ಟಲ್ - 2026",
+        regNo: "ನೋಂದಣಿ ಸಂಖ್ಯೆ: KCS/DWD/PWCS-742/1984",
+        dashboard: "ಡ್ಯಾಶ್ಬೋರ್ಡ್",
+        tablesView: "ಸಂಘದ ವಹಿವಾಟು ಕೋಷ್ಟಕಗಳು (All Tables)",
+        posSales: "ಮಾರಾಟ ಕೌಂಟರ್ & 20% ರಿಬೇಟ್",
+        productionPipeline: "ನೂಲು ಹಂಚಿಕೆ & ಬಟ್ಟೆ ಸ್ವೀಕಾರ",
+        sqlDDL: "SQL ಡೇಟಾಬೇಸ್ ಸ್ಕೀಮಾ (DDL & SQL)",
+        rebateClaims: "20% ರಿಬೇಟ್ ಕ್ಲೈಮ್ ವರದಿ",
+        dayBook: "ದಿನ ವಹಿ (Cash Day Book)",
+        langToggle: "English",
+        cashInHand: "ನಗದು ಶಿಲ್ಕು (Cash Balance)",
+        rebateReceivable: "20% ಸರ್ಕಾರಿ ರಿಬೇಟ್ ಬರಬೇಕಾದದ್ದು",
+        wagesPaid: "ಒಟ್ಟು ಕೂಲಿ ಪಾವತಿ (Wages)",
+        activeLooms: "ಕಾರ್ಯನಿರತ ಮಗ್ಗಗಳು (Active Looms)",
+        yarnStock: "ದಾಸ್ತಾನು ನೂಲು (Yarn Stock KG)",
+        searchPlaceholder: "ಹುಡುಕಿ (ಹೆಸರು, ಸಂಖ್ಯೆ, ದಿನಾಂಕ)...",
+        exportCsv: "CSV ಡೌನ್ಲೋಡ್",
+        addRecord: "+ ಹೊಸ ದಾಖಲೆ",
+        print: "ಪ್ರಿಂಟ್ ರಸೀದಿ",
+        close: "ಮುಚ್ಚಿ",
+        save: "ಉಳಿಸಿ",
+        cancel: "ರದ್ದುಮಾಡಿ",
+        copySql: "SQL ನಕಲಿಸಿ",
+        sqlCopied: "ನಕಲಿಸಲಾಗಿದೆ!",
+        filterAll: "ಎಲ್ಲಾ",
+        handloom: "ಕೈಮಗ್ಗ (Handloom)",
+        powerloom: "ವಿದ್ಯುತ್ ಮಗ್ಗ (Powerloom)",
+        status: "ಸ್ಥಿತಿ",
+        actions: "ಕ್ರಮಗಳು"
+      },
+      en: {
+        societyName: "Shri Banashri Weavers Co-operative Production & Sale Society Ltd.",
+        tagline: "Integrated Handloom & Powerloom Society Management ERP - 2026",
+        regNo: "Reg No: KCS/DWD/PWCS-742/1984",
+        dashboard: "Executive Dashboard",
+        tablesView: "Master Tables Ledger",
+        posSales: "POS Counter & 20% Rebate",
+        productionPipeline: "Yarn Issue & Fabric Inward",
+        sqlDDL: "SQL Schema & Tables DDL",
+        rebateClaims: "20% Govt Rebate Claims",
+        dayBook: "Co-op Day Book (Dina Vahi)",
+        langToggle: "ಕನ್ನಡ",
+        cashInHand: "Cash In Hand",
+        rebateReceivable: "Govt 20% Rebate Receivable",
+        wagesPaid: "Wages Disbursed",
+        activeLooms: "Active Loom Batches",
+        yarnStock: "Total Yarn Stock (KG)",
+        searchPlaceholder: "Search records...",
+        exportCsv: "Export CSV",
+        addRecord: "+ Add New Record",
+        print: "Print Voucher",
+        close: "Close",
+        save: "Save Record",
+        cancel: "Cancel",
+        copySql: "Copy SQL Script",
+        sqlCopied: "Copied!",
+        filterAll: "All",
+        handloom: "Handloom",
+        powerloom: "Powerloom",
+        status: "Status",
+        actions: "Actions"
+      }
+    };
+
+    // --- SEED COOPERATIVE DATA ---
+    const INITIAL_MEMBERS = [
+      { id: "M-101", name: "ಬಸವರಾಜಪ್ಪ ಪೂಜಾರ (Basavaraj Pujar)", type: "HANDLOOM_PIT", hp: 0, rrNo: "N/A", nekaraId: "NS-KAR-2024-0012", shareCap: 5000, phone: "9845012345", wageDue: 1850 },
+      { id: "M-102", name: "ಮಂಜುನಾಥ ದೇವಾಂಗ (Manjunath Devanga)", type: "POWERLOOM", hp: 2.0, rrNo: "RR-BLG-9412", nekaraId: "NS-KAR-2025-1082", shareCap: 12000, phone: "9980112233", wageDue: 450 },
+      { id: "M-103", name: "ರೇಣುಕಾ ಹೊಸಮನಿ (Renuka Hosamani)", type: "HANDLOOM_FRAME", hp: 0, rrNo: "N/A", nekaraId: "NS-KAR-2023-4110", shareCap: 6000, phone: "9448098765", wageDue: 3200 },
+      { id: "M-104", name: "ಶಿವಾನಂದ್ ಪಟ್ಟಣಶೆಟ್ಟಿ (Shivanand P)", type: "POWERLOOM", hp: 3.0, rrNo: "RR-BLG-8819", nekaraId: "NS-KAR-2024-5519", shareCap: 15000, phone: "9886077122", wageDue: 0 },
+      { id: "M-105", name: "ಗಂಗಮ್ಮ ಕುರುಹಿನಶೆಟ್ಟಿ (Gangamma K)", type: "HANDLOOM_PIT", hp: 0, rrNo: "N/A", nekaraId: "NS-KAR-2022-8114", shareCap: 4500, phone: "9741209931", wageDue: 1250 }
+    ];
+
+    const INITIAL_YARN_INVENTORY = [
+      { id: "Y-01", name: "Cotton Hank 40s (ಬೆಳ್ಳಗೆ ಹ್ಯಾಂಕ್)", lot: "LOT-2026-C40", category: "COTTON_HANK", stockKg: 420.5, ratePerKg: 340, supplier: "KHDC Belagavi Mill" },
+      { id: "Y-02", name: "Cotton Hank 60s Superfine", lot: "LOT-2026-C60", category: "COTTON_HANK", stockKg: 180.0, ratePerKg: 460, supplier: "KBSHCS Cauvery Depot" },
+      { id: "Y-03", name: "Polyester Warp Cone 80D", lot: "LOT-2026-PLY80", category: "POLY_CONE", stockKg: 650.0, ratePerKg: 195, supplier: "Surat Yarn House" },
+      { id: "Y-04", name: "Pure Silver Gold Zari Spool (240g)", lot: "LOT-2026-ZAR1", category: "ZARI_SPOOL", stockKg: 45.2, ratePerKg: 1850, supplier: "Surat Jari Works" },
+      { id: "Y-05", name: "Cotton 20s Coarse (ಮಧ್ಯಮ ನೂಲು)", lot: "LOT-2026-C20", category: "COTTON_HANK", stockKg: 310.0, ratePerKg: 280, supplier: "Gadag Spinners" }
+    ];
+
+    const INITIAL_PRODUCTS = [
+      { id: "PRD-01", name: "ಶುದ್ಧ ಹತ್ತಿ ತುವ್ವಾಲು (Cotton Towel 30x60)", cat: "TOWEL", uom: "PCS", retailRate: 220, wholesaleRate: 170, isRebate: true, hsn: "5208" },
+      { id: "PRD-02", name: "ಬಿಳಿ ದೇವ್ರ ವಸ್ತ್ರ ಕಸೂತಿ (Devara Vastra Embroidered)", cat: "DEVARA_VASTRA", uom: "PCS", retailRate: 160, wholesaleRate: 120, isRebate: true, hsn: "6304" },
+      { id: "PRD-03", name: "ರುಮಾಲು ಸೆಟ್ 6 ತುಂಡು (Handkerchief 6-pack)", cat: "RUMAAL", uom: "PKT", retailRate: 180, wholesaleRate: 135, isRebate: true, hsn: "6213" },
+      { id: "PRD-04", name: "ಪ್ಲೇನ್ ತಾಖಾ ಬಟ್ಟೆ 44 ಇಂಚು (Full Stretch Than)", cat: "THAN_FABRIC", uom: "MTRS", retailRate: 98, wholesaleRate: 74, isRebate: false, hsn: "5208" },
+      { id: "PRD-05", name: "ಇಳಕಲ್ ರೇಷ್ಮೆ ಸೀರೆ ಟೋಪೆ ತೇನಿ (Ilkal Silk Saree)", cat: "SAREE", uom: "PCS", retailRate: 3400, wholesaleRate: 2800, isRebate: true, hsn: "5007" }
+    ];
+
+    const INITIAL_BATCHES = [
+      { id: "JOB-2601", memberId: "M-101", memberName: "ಬಸವರಾಜಪ್ಪ ಪೂಜಾರ", yarnId: "Y-01", yarnName: "Cotton Hank 40s", weightIssuedKg: 20.0, targetProduct: "Cotton Towel 30x60", expectedUnits: 65, issueDate: "2026-09-02", status: "OPEN" },
+      { id: "JOB-2602", memberId: "M-102", memberName: "ಮಂಜುನಾಥ ದೇವಾಂಗ", yarnId: "Y-03", yarnName: "Polyester Warp Cone 80D", weightIssuedKg: 50.0, targetProduct: "Full Stretch Than (Mtrs)", expectedUnits: 420, issueDate: "2026-09-04", status: "OPEN" },
+      { id: "JOB-2603", memberId: "M-103", memberName: "ರೇಣುಕಾ ಹೊಸಮನಿ", yarnId: "Y-01", yarnName: "Cotton Hank 40s", weightIssuedKg: 15.0, targetProduct: "Devara Vastra Embroidered", expectedUnits: 80, issueDate: "2026-08-28", status: "CLOSED" },
+      { id: "JOB-2604", memberId: "M-105", memberName: "ಗಂಗಮ್ಮ ಕುರುಹಿನಶೆಟ್ಟಿ", yarnId: "Y-01", yarnName: "Cotton Hank 40s", weightIssuedKg: 12.0, targetProduct: "Handkerchief 6-pack", expectedUnits: 50, issueDate: "2026-09-01", status: "OPEN" }
+    ];
+
+    const INITIAL_INWARDS = [
+      { id: "INW-801", batchId: "JOB-2603", memberName: "ರೇಣುಕಾ ಹೊಸಮನಿ", date: "2026-09-05", yarnIssuedKg: 15.0, fabricWeightKg: 14.35, wastageReturnedKg: 0.25, lossPct: 2.67, unitsProduced: 80, uom: "PCS", wageRate: 35, grossWage: 2800, penaltyDeduction: 0, netWage: 2800, status: "APPROVED" },
+      { id: "INW-800", batchId: "JOB-2598", memberName: "ಬಸವರಾಜಪ್ಪ ಪೂಜಾರ", date: "2026-08-29", yarnIssuedKg: 25.0, fabricWeightKg: 23.60, wastageReturnedKg: 0.30, lossPct: 4.40, unitsProduced: 80, uom: "PCS", wageRate: 30, grossWage: 2400, penaltyDeduction: 133, netWage: 2267, status: "PENALIZED" }
+    ];
+
+    const INITIAL_SALES = [
+      { id: "INV-2026-104", date: "2026-09-10", customer: "ಶ್ರೀ ಬನಶಂಕರಿ ದೇವಸ್ಥಾನ ಟ್ರಸ್ಟ್", phone: "9449887711", type: "RETAIL", gross: 4500, rebateAmt: 900, net: 3600, payment: "CASH", itemsCount: 3 },
+      { id: "INV-2026-103", date: "2026-09-09", customer: "ರವಿ ಟೆಕ್ಸ್ಟೈಲ್ಸ್ ಸಗಟು ವ್ಯಾಪಾರ (Ravi Textiles)", phone: "9844112244", type: "WHOLESALE", gross: 18500, rebateAmt: 0, net: 18500, payment: "UPI", itemsCount: 4 },
+      { id: "INV-2026-102", date: "2026-09-08", customer: "ಮಹಾಲಿಂಗಪ್ಪ ಸವದಿ", phone: "9741009988", type: "RETAIL", gross: 1200, rebateAmt: 240, net: 960, payment: "CASH", itemsCount: 2 }
+    ];
+
+    const INITIAL_DAYBOOK = [
+      { id: "DB-1001", date: "2026-09-10", type: "RECEIPT", head: "ಮಾರಾಟ ಕೌಂಟರ್ ನಗದು (Cash Sales)", ref: "INV-2026-104", debit: 3600, credit: 0, notes: "Temple purchase net cash" },
+      { id: "DB-1002", date: "2026-09-09", type: "RECEIPT", head: "ಸಗಟು ಮಾರಾಟ ಯುಪಿಐ (UPI Sales)", ref: "INV-2026-103", debit: 18500, credit: 0, notes: "Wholesale fabric rolls" },
+      { id: "DB-1003", date: "2026-09-05", type: "PAYMENT", head: "ನೇಕಾರ ಕೂಲಿ ಪಾವತಿ (Weaver Wage)", ref: "INW-801", debit: 0, credit: 2800, notes: "Wage to Renuka H for batch JOB-2603" },
+      { id: "DB-1004", date: "2026-09-02", type: "PAYMENT", head: "ನೂಲು ಖರೀದಿ ಖರ್ಚು (Yarn Purchase)", ref: "PO-KHDC-88", debit: 0, credit: 15400, notes: "Procured 50kg 40s Cotton Hank" }
+    ];
+
+    // --- FULL PRODUCTION POSTGRESQL & SQLITE DDL SCRIPTS ---
+    const SQL_DDL_SCRIPT = `-- ====================================================================
+-- BANASHRI NEKARARA UTHPADANA MATTU MARATHA SAHAKARA SANGHA NIYAMITA
+-- Complete Production Database DDL Schema (PostgreSQL 14+ / Supabase Compliant)
+-- ====================================================================
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. LOOM & WEAVER CLASSIFICATION ENUM
+CREATE TYPE loom_category AS ENUM ('HANDLOOM_PIT', 'HANDLOOM_FRAME', 'POWERLOOM');
+CREATE TYPE uom_type AS ENUM ('PCS', 'MTRS', 'PKT', 'KG');
+CREATE TYPE sale_channel AS ENUM ('RETAIL', 'WHOLESALE');
+CREATE TYPE job_status AS ENUM ('OPEN', 'CLOSED', 'CANCELLED');
+
+-- 2. WEAVER MEMBERS & SHARE CAPITAL REGISTRY
+CREATE TABLE members (
+    id VARCHAR(20) PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    phone_number VARCHAR(15) NOT NULL,
+    aadhaar_hash VARCHAR(64),
+    nekara_samman_id VARCHAR(50) UNIQUE NOT NULL,
+    share_capital NUMERIC(12, 2) DEFAULT 5000.00 CHECK (share_capital >= 1000.00),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. LOOM ASSETS & POWERLOOM HP / RR SUBSIDY REGISTRY
+CREATE TABLE looms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    member_id VARCHAR(20) REFERENCES members(id) ON DELETE RESTRICT,
+    loom_type loom_category NOT NULL,
+    hp_motor_rating NUMERIC(4, 2) DEFAULT 0.0 CHECK (hp_motor_rating >= 0.0),
+    electricity_rr_no VARCHAR(50),
+    geo_location VARCHAR(100),
+    verified_by_inspector VARCHAR(100)
+);
+
+-- 4. YARN & RAW MATERIAL INVENTORY (ಹ್ಯಾಂಕ್ & ಕೋನ್ ಗೋದಾಮು)
+CREATE TABLE yarn_inventory (
+    id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    lot_number VARCHAR(50) NOT NULL,
+    yarn_category VARCHAR(50) NOT NULL, -- 'COTTON_HANK', 'POLY_CONE', 'ZARI_SPOOL'
+    stock_in_kg NUMERIC(10, 3) NOT NULL CHECK (stock_in_kg >= 0),
+    cost_per_kg NUMERIC(10, 2) NOT NULL,
+    supplier_name VARCHAR(120),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. FINISHED PRODUCTS CATALOG (ತಾಖಾ, ತುವ್ವಾಲು, ರುಮಾಲು, ದೇವ್ರ ವಸ್ತ್ರ)
+CREATE TABLE finished_products (
+    id VARCHAR(20) PRIMARY KEY,
+    product_name VARCHAR(150) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    uom uom_type NOT NULL,
+    retail_rate NUMERIC(10, 2) NOT NULL,
+    wholesale_rate NUMERIC(10, 2) NOT NULL,
+    is_govt_rebate_eligible BOOLEAN DEFAULT FALSE,
+    hsn_code VARCHAR(10) DEFAULT '5208'
+);
+
+-- 6. PRODUCTION DISPATCH / YARN JOB-WORK (ಹಂಚಿಕೆ ಪುಸ್ತಕ - Hanchike)
+CREATE TABLE production_batches (
+    batch_id VARCHAR(20) PRIMARY KEY,
+    member_id VARCHAR(20) REFERENCES members(id),
+    yarn_id VARCHAR(20) REFERENCES yarn_inventory(id),
+    weight_issued_kg NUMERIC(8, 3) NOT NULL CHECK (weight_issued_kg > 0),
+    target_product_id VARCHAR(20) REFERENCES finished_products(id),
+    expected_output_units NUMERIC(8, 2) NOT NULL,
+    issue_date DATE DEFAULT CURRENT_DATE,
+    status job_status DEFAULT 'OPEN'
+);
+
+-- 7. FABRIC INWARD & WAGE / TOLERANCE SETTLEMENT (ದಾಖಲೆ ಪುಸ್ತಕ - Dakhale)
+CREATE TABLE production_inwards (
+    inward_id VARCHAR(20) PRIMARY KEY,
+    batch_id VARCHAR(20) REFERENCES production_batches(batch_id),
+    inward_date DATE DEFAULT CURRENT_DATE,
+    fabric_weight_kg NUMERIC(8, 3) NOT NULL,
+    wastage_returned_kg NUMERIC(8, 3) DEFAULT 0.0,
+    units_received NUMERIC(8, 2) NOT NULL,
+    actual_loss_kg NUMERIC(8, 3) GENERATED ALWAYS AS 
+      (GREATEST(0, (SELECT weight_issued_kg FROM production_batches WHERE batch_id = production_inwards.batch_id) - (fabric_weight_kg + wastage_returned_kg))) STORED,
+    loss_percentage NUMERIC(5, 2) NOT NULL,
+    wage_rate_per_unit NUMERIC(8, 2) NOT NULL,
+    gross_wage NUMERIC(10, 2) NOT NULL,
+    penalty_deductions NUMERIC(10, 2) DEFAULT 0.0,
+    net_wage_payable NUMERIC(10, 2) NOT NULL
+);
+
+-- 8. SALES INVOICES & 20% REBATE SUBSIDY BREAKDOWN
+CREATE TABLE sales_invoices (
+    invoice_id VARCHAR(25) PRIMARY KEY,
+    sale_channel sale_channel NOT NULL,
+    sale_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    customer_name VARCHAR(150) NOT NULL,
+    customer_phone VARCHAR(15),
+    gross_total NUMERIC(12, 2) NOT NULL,
+    rebate_percentage NUMERIC(4, 2) DEFAULT 20.00,
+    rebate_amount NUMERIC(12, 2) DEFAULT 0.00,
+    net_collected_amount NUMERIC(12, 2) NOT NULL,
+    payment_mode VARCHAR(30) DEFAULT 'CASH'
+);
+
+-- 9. SALES INVOICE LINE ITEMS
+CREATE TABLE sales_line_items (
+    id BIGSERIAL PRIMARY KEY,
+    invoice_id VARCHAR(25) REFERENCES sales_invoices(invoice_id) ON DELETE CASCADE,
+    product_id VARCHAR(20) REFERENCES finished_products(id),
+    quantity NUMERIC(8, 2) NOT NULL,
+    unit_rate NUMERIC(10, 2) NOT NULL,
+    line_total NUMERIC(12, 2) NOT NULL,
+    rebate_applied NUMERIC(10, 2) DEFAULT 0.0
+);
+
+-- 10. COOPERATIVE DAY BOOK & DOUBLE-ENTRY CASH JOURNAL (ದಿನ ವಹಿ)
+CREATE TABLE day_book_entries (
+    entry_id VARCHAR(25) PRIMARY KEY,
+    entry_date DATE DEFAULT CURRENT_DATE,
+    account_head VARCHAR(100) NOT NULL,
+    reference_doc_no VARCHAR(50),
+    debit_inflow NUMERIC(12, 2) DEFAULT 0.0,
+    credit_outflow NUMERIC(12, 2) DEFAULT 0.0,
+    narration TEXT
+);
+
+-- INDEXES FOR AUDIT SPEED & QUERIES
+CREATE INDEX idx_members_nekara ON members(nekara_samman_id);
+CREATE INDEX idx_invoices_date ON sales_invoices(sale_date);
+CREATE INDEX idx_inwards_batch ON production_inwards(batch_id);
+CREATE INDEX idx_daybook_date ON day_book_entries(entry_date);
+`;
+
+    // --- MAIN REACT APPLICATION COMPONENT ---
+    function App() {
+      const [lang, setLang] = useState("kn");
+      const [activeTab, setActiveTab] = useState("dashboard");
+      const t = translations[lang];
+
+      // Master State synced with LocalStorage
+      const [members, setMembers] = useState(() => JSON.parse(localStorage.getItem("bn_app_members")) || INITIAL_MEMBERS);
+      const [yarnStock, setYarnStock] = useState(() => JSON.parse(localStorage.getItem("bn_app_yarn")) || INITIAL_YARN_INVENTORY);
+      const [products] = useState(() => JSON.parse(localStorage.getItem("bn_app_products")) || INITIAL_PRODUCTS);
+      const [batches, setBatches] = useState(() => JSON.parse(localStorage.getItem("bn_app_batches")) || INITIAL_BATCHES);
+      const [inwards, setInwards] = useState(() => JSON.parse(localStorage.getItem("bn_app_inwards")) || INITIAL_INWARDS);
+      const [sales, setSales] = useState(() => JSON.parse(localStorage.getItem("bn_app_sales")) || INITIAL_SALES);
+      const [dayBook, setDayBook] = useState(() => JSON.parse(localStorage.getItem("bn_app_daybook")) || INITIAL_DAYBOOK);
+
+      // Active modal states
+      const [printModalData, setPrintModalData] = useState(null);
+      const [showNewMemberModal, setShowNewMemberModal] = useState(false);
+      const [showNewBatchModal, setShowNewBatchModal] = useState(false);
+      const [showNewInwardModal, setShowNewInwardModal] = useState(false);
+      const [showNewYarnModal, setShowNewYarnModal] = useState(false);
+
+      // Persist state changes
+      useEffect(() => { localStorage.setItem("bn_app_members", JSON.stringify(members)); }, [members]);
+      useEffect(() => { localStorage.setItem("bn_app_yarn", JSON.stringify(yarnStock)); }, [yarnStock]);
+      useEffect(() => { localStorage.setItem("bn_app_batches", JSON.stringify(batches)); }, [batches]);
+      useEffect(() => { localStorage.setItem("bn_app_inwards", JSON.stringify(inwards)); }, [inwards]);
+      useEffect(() => { localStorage.setItem("bn_app_sales", JSON.stringify(sales)); }, [sales]);
+      useEffect(() => { localStorage.setItem("bn_app_daybook", JSON.stringify(dayBook)); }, [dayBook]);
+
+      // Metrics calculation
+      const kpis = useMemo(() => {
+        const cashInHand = sales.reduce((sum, s) => sum + s.net, 0) - inwards.reduce((sum, i) => sum + i.netWage, 0);
+        const totalRebateDue = sales.reduce((sum, s) => sum + s.rebateAmt, 0);
+        const totalWages = inwards.reduce((sum, i) => sum + i.netWage, 0);
+        const totalKgYarn = yarnStock.reduce((sum, y) => sum + Number(y.stockKg), 0);
+        const openJobs = batches.filter(b => b.status === "OPEN").length;
+        return { cashInHand, totalRebateDue, totalWages, totalKgYarn, openJobs };
+      }, [sales, inwards, yarnStock, batches]);
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* TOP HEADER */}
+          <header className="bg-coop-950 text-white shadow-xl sticky top-0 z-40 no-print border-b-2 border-karnataka-yellow">
+            <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 border-2 border-white flex items-center justify-center font-black text-slate-900 shadow">
+                    ಬ
+                  </div>
+                  <div>
+                    <h1 className="text-base md:text-lg font-bold leading-snug tracking-tight text-white flex items-center gap-2">
+                      {t.societyName}
+                    </h1>
+                    <p className="text-xs text-emerald-300 font-medium">
+                      {t.tagline} • <span className="text-amber-300 font-mono text-[11px]">{t.regNo}</span>
+                    </p>
+                  </div>
+                </div>
+                {/* Mobile Language Toggle */}
+                <button
+                  onClick={() => setLang(lang === "kn" ? "en" : "kn")}
+                  className="md:hidden bg-coop-800 text-xs px-2.5 py-1 rounded border border-emerald-500 font-semibold"
+                >
+                  🌐 {t.langToggle}
+                </button>
+              </div>
+
+              {/* Desktop Language and Status Badges */}
+              <div className="hidden md:flex items-center space-x-3">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-900/80 text-emerald-200 border border-emerald-600">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  2026 Audit Ready
+                </span>
+                <button
+                  onClick={() => setLang(lang === "kn" ? "en" : "kn")}
+                  className="bg-coop-800 hover:bg-coop-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-500 shadow-sm transition flex items-center gap-1"
+                >
+                  <span>🌐</span>
+                  <span>{t.langToggle}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* TAB NAVIGATION */}
+            <div className="bg-coop-900 border-t border-emerald-800/60 px-4">
+              <nav className="max-w-7xl mx-auto flex space-x-1 overflow-x-auto scrollbar-none py-1 text-xs md:text-sm font-semibold">
+                {[
+                  { id: "dashboard", label: t.dashboard, icon: "📊" },
+                  { id: "tables", label: t.tablesView, icon: "📑" },
+                  { id: "pos", label: t.posSales, icon: "🛒" },
+                  { id: "production", label: t.productionPipeline, icon: "🧵" },
+                  { id: "daybook", label: t.dayBook, icon: "📖" },
+                  { id: "rebate", label: t.rebateClaims, icon: "🏛️" },
+                  { id: "sqlddl", label: t.sqlDDL, icon: "💾" },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-lg whitespace-nowrap transition-all ${
+                      activeTab === tab.id
+                        ? "bg-amber-400 text-slate-950 font-bold shadow"
+                        : "text-emerald-100 hover:bg-coop-800 hover:text-white"
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </header>
+
+          <main className="flex-1 max-w-7xl w-full mx-auto p-3 md:p-6">
+            {activeTab === "dashboard" && (
+              <DashboardView 
+                t={t} 
+                kpis={kpis} 
+                members={members} 
+                batches={batches} 
+                sales={sales} 
+                setActiveTab={setActiveTab} 
+              />
+            )}
+
+            {activeTab === "tables" && (
+              <AllMasterTablesView 
+                t={t}
+                members={members}
+                yarnStock={yarnStock}
+                products={products}
+                batches={batches}
+                inwards={inwards}
+                sales={sales}
+                dayBook={dayBook}
+                onOpenNewMember={() => setShowNewMemberModal(true)}
+                onOpenNewBatch={() => setShowNewBatchModal(true)}
+                onOpenNewInward={() => setShowNewInwardModal(true)}
+                onOpenNewYarn={() => setShowNewYarnModal(true)}
+                onPrint={(type, data) => setPrintModalData({ type, data })}
+              />
+            )}
+
+            {activeTab === "pos" && (
+              <POSSalesView 
+                t={t} 
+                products={products}
+                onCompleteSale={(newSale, newDayBookEntry) => {
+                  setSales([newSale, ...sales]);
+                  setDayBook([newDayBookEntry, ...dayBook]);
+                  setPrintModalData({ type: "INVOICE", data: newSale });
+                }}
+              />
+            )}
+
+            {activeTab === "production" && (
+              <ProductionWorkflowView 
+                t={t}
+                members={members}
+                yarnStock={yarnStock}
+                batches={batches}
+                inwards={inwards}
+                onIssueYarn={(newBatch, updatedYarn) => {
+                  setBatches([newBatch, ...batches]);
+                  setYarnStock(updatedYarn);
+                }}
+                onInwardFabric={(newInward, updatedBatchId, wageEntry) => {
+                  setInwards([newInward, ...inwards]);
+                  setBatches(batches.map(b => b.id === updatedBatchId ? { ...b, status: "CLOSED" } : b));
+                  setDayBook([wageEntry, ...dayBook]);
+                  setPrintModalData({ type: "WAGE_VOUCHER", data: newInward });
+                }}
+              />
+            )}
+
+            {activeTab === "daybook" && (
+              <DayBookCoopView t={t} dayBook={dayBook} />
+            )}
+
+            {activeTab === "rebate" && (
+              <RebateClaimsAuditView t={t} sales={sales.filter(s => s.rebateAmt > 0)} />
+            )}
+
+            {activeTab === "sqlddl" && (
+              <SQLDDLExplorerView t={t} ddl={SQL_DDL_SCRIPT} />
+            )}
+          </main>
+
+          {/* VOUCHER / THERMAL RECEIPT MODAL */}
+          {printModalData && (
+            <PrintModalView 
+              data={printModalData} 
+              onClose={() => setPrintModalData(null)} 
+              t={t} 
+            />
+          )}
+
+          {/* MODAL: ADD NEW MEMBER */}
+          {showNewMemberModal && (
+            <NewMemberModal 
+              t={t} 
+              onClose={() => setShowNewMemberModal(false)} 
+              onSave={(m) => {
+                setMembers([...members, m]);
+                setShowNewMemberModal(false);
+              }}
+            />
+          )}
+
+          {/* MODAL: ADD NEW YARN LOT */}
+          {showNewYarnModal && (
+            <NewYarnModal 
+              t={t}
+              onClose={() => setShowNewYarnModal(false)}
+              onSave={(y) => {
+                setYarnStock([...yarnStock, y]);
+                setShowNewYarnModal(false);
+              }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    function DashboardView({ t, kpis, members, batches, sales, setActiveTab }) {
+      return (
+        <div className="space-y-6">
+          {/* METRICS STRIP */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t.cashInHand}</p>
+              <h3 className="text-xl md:text-2xl font-black text-emerald-800 mt-1">₹{kpis.cashInHand.toLocaleString('en-IN')}</h3>
+              <span className="text-[10px] text-emerald-600 font-semibold">Net Cash Flow</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm bg-gradient-to-b from-amber-50/50 to-white">
+              <p className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">{t.rebateReceivable}</p>
+              <h3 className="text-xl md:text-2xl font-black text-amber-600 mt-1">₹{kpis.totalRebateDue.toLocaleString('en-IN')}</h3>
+              <span className="text-[10px] text-amber-700 font-medium">Claimable from Govt</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t.wagesPaid}</p>
+              <h3 className="text-xl md:text-2xl font-black text-indigo-700 mt-1">₹{kpis.totalWages.toLocaleString('en-IN')}</h3>
+              <span className="text-[10px] text-slate-500 font-medium">To Weaver Accounts</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t.activeLooms}</p>
+              <h3 className="text-xl md:text-2xl font-black text-rose-600 mt-1">{kpis.openJobs}</h3>
+              <span className="text-[10px] text-rose-600 font-semibold">Open Yarn Batches</span>
+            </div>
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t.yarnStock}</p>
+              <h3 className="text-xl md:text-2xl font-black text-slate-800 mt-1">{kpis.totalKgYarn.toFixed(1)} <span className="text-sm font-normal">KG</span></h3>
+              <span className="text-[10px] text-slate-500 font-medium">In Godown Stock</span>
+            </div>
+          </div>
+
+          {/* QUICK ACTION BANNER */}
+          <div className="bg-gradient-to-r from-coop-900 via-coop-800 to-teal-950 rounded-2xl p-5 md:p-7 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-5 border border-emerald-700">
+            <div className="space-y-1 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 px-3 py-0.5 rounded-full text-xs font-bold border border-amber-400/30">
+                ✨ 2026 ಸಂಘದ ಡಿಜಿಟಲೀಕರಣ ಆವೃತ್ತಿ
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold">ಬನಶ್ರೀ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ - ಸ್ವಯಂಚಾಲಿತ ಲೆಡ್ಜರ್</h2>
+              <p className="text-xs md:text-sm text-emerald-200 max-w-2xl">
+                Track hank yarn procurement, automatic 3% wastage tolerance checks, piece-rate wages for towels & plain than fabric, and generate auditor-compliant 20% Rebate statements instantly.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2.5 justify-center">
+              <button 
+                onClick={() => setActiveTab("pos")} 
+                className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs md:text-sm shadow-md transition flex items-center gap-1.5"
+              >
+                🛒 ಬಿಲ್ಲಿಂಗ್ & ರಿಬೇಟ್ (POS)
+              </button>
+              <button 
+                onClick={() => setActiveTab("tables")} 
+                className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs md:text-sm border border-emerald-500 shadow-md transition flex items-center gap-1.5"
+              >
+                📑 ಎಲ್ಲಾ ಕೋಷ್ಟಕಗಳು (All Tables)
+              </button>
+              <button 
+                onClick={() => setActiveTab("sqlddl")} 
+                className="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-mono text-xs px-3.5 py-2.5 rounded-xl border border-slate-600 transition"
+              >
+                💾 SQL Schema
+              </button>
+            </div>
+          </div>
+
+          {/* RECENT ACTIVITY DUAL COLUMN */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Active Batches Table Preview */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <span>🧵</span> ಪ್ರಸ್ತುತ ಚಾಲ್ತಿ ನೂಲು ಹಂಚಿಕೆಗಳು (Active Batches)
+                </h3>
+                <button onClick={() => setActiveTab("production")} className="text-xs text-emerald-700 font-bold hover:underline">
+                  View All →
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 text-slate-600 font-bold border-b">
+                    <tr>
+                      <th className="py-2 px-2.5">ಬ್ಯಾಚ್</th>
+                      <th className="py-2 px-2.5">ನೇಕಾರ ಸದಸ್ಯ</th>
+                      <th className="py-2 px-2.5">ನೂಲು ತೂಕ</th>
+                      <th className="py-2 px-2.5">ಉದ್ದೇಶಿತ ಬಟ್ಟೆ</th>
+                      <th className="py-2 px-2.5">ಸ್ಥಿತಿ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {batches.slice(0, 4).map(b => (
+                      <tr key={b.id} className="hover:bg-slate-50">
+                        <td className="py-2 px-2.5 font-mono font-bold text-emerald-800">{b.id}</td>
+                        <td className="py-2 px-2.5 font-medium">{b.memberName}</td>
+                        <td className="py-2 px-2.5 font-bold">{b.weightIssuedKg} KG</td>
+                        <td className="py-2 px-2.5">{b.targetProduct}</td>
+                        <td className="py-2 px-2.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            b.status === "OPEN" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                          }`}>
+                            {b.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recent Sales with Rebate Preview */}
+            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                  <span>🏷️</span> ಇತ್ತೀಚಿನ ಮಾರಾಟ ಮತ್ತು ರಿಬೇಟ್ (Recent Sales)
+                </h3>
+                <button onClick={() => setActiveTab("rebate")} className="text-xs text-emerald-700 font-bold hover:underline">
+                  Rebate Report →
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 text-slate-600 font-bold border-b">
+                    <tr>
+                      <th className="py-2 px-2.5">ರಶೀದಿ</th>
+                      <th className="py-2 px-2.5">ಗ್ರಾಹಕರು</th>
+                      <th className="py-2 px-2.5">ಒಟ್ಟು (Gross)</th>
+                      <th className="py-2 px-2.5 text-amber-700">20% ರಿಬೇಟ್</th>
+                      <th className="py-2 px-2.5 text-emerald-800">ಪಾವತಿ (Net)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {sales.slice(0, 4).map(s => (
+                      <tr key={s.id} className="hover:bg-slate-50">
+                        <td className="py-2 px-2.5 font-mono font-bold">{s.id}</td>
+                        <td className="py-2 px-2.5 font-medium truncate max-w-[130px]">{s.customer}</td>
+                        <td className="py-2 px-2.5">₹{s.gross}</td>
+                        <td className="py-2 px-2.5 font-bold text-amber-600">₹{s.rebateAmt}</td>
+                        <td className="py-2 px-2.5 font-black text-emerald-700">₹{s.net}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function AllMasterTablesView({ 
+      t, 
+      members, 
+      yarnStock, 
+      products, 
+      batches, 
+      inwards, 
+      sales, 
+      dayBook,
+      onOpenNewMember,
+      onOpenNewBatch,
+      onOpenNewInward,
+      onOpenNewYarn,
+      onPrint
+    }) {
+      const [tableSubTab, setTableSubTab] = useState("members");
+      const [searchTerm, setSearchTerm] = useState("");
+
+      // CSV Export Utility
+      const exportTableToCSV = (filename, rows) => {
+        if (!rows || !rows.length) return alert("No data to export");
+        const separator = ",";
+        const keys = Object.keys(rows[0]);
+        const csvContent =
+          keys.join(separator) +
+          "\n" +
+          rows.map(row => {
+            return keys.map(k => {
+              let cell = row[k] === null || row[k] === undefined ? "" : row[k].toString();
+              cell = cell.replace(/"/g, '""');
+              if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
+              return cell;
+            }).join(separator);
+          }).join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-6 space-y-5">
+          {/* TABLE SELECTOR HEADER */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b pb-4">
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                ಸಂಘದ ಮುಖ್ಯ ಕೋಷ್ಟಕಗಳು (Master Tables & Registers)
+              </h2>
+              <p className="text-xs text-slate-500">
+                Live ledger views for Members, Looms, Yarn, Production Inward, Wages, and POS transactions.
+              </p>
+            </div>
+
+            {/* ACTION BUTTONS */}
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <input
+                type="text"
+                placeholder={t.searchPlaceholder}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="text-xs px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-emerald-600 flex-1 md:w-56"
+              />
+              {tableSubTab === "members" && (
+                <button onClick={onOpenNewMember} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
+                  + ಹೊಸ ಸದಸ್ಯ (Member)
+                </button>
+              )}
+              {tableSubTab === "yarn" && (
+                <button onClick={onOpenNewYarn} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
+                  + ನೂಲು ದಾಸ್ತಾನು (Yarn)
+                </button>
+              )}
+              {tableSubTab === "hanchike" && (
+                <button onClick={onOpenNewBatch} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
+                  + ಹಂಚಿಕೆ (Issue Batch)
+                </button>
+              )}
+              {tableSubTab === "dakhale" && (
+                <button onClick={onOpenNewInward} className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
+                  + ಬಟ್ಟೆ ದಾಖಲೆ (Inward)
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* SUB TABS */}
+          <div className="flex overflow-x-auto gap-2 border-b pb-2 text-xs font-bold scrollbar-none">
+            {[
+              { id: "members", label: "೧. ಸದಸ್ಯರು & ಮಗ್ಗಗಳು (Members)", count: members.length },
+              { id: "yarn", label: "೨. ನೂಲು ದಾಸ್ತಾನು (Yarn Stock)", count: yarnStock.length },
+              { id: "products", label: "೩. ಸಿದ್ಧ ಉತ್ಪನ್ನಗಳು (Products)", count: products.length },
+              { id: "hanchike", label: "೪. ನೂಲು ಹಂಚಿಕೆ (Production)", count: batches.length },
+              { id: "dakhale", label: "೫. ಬಟ್ಟೆ ದಾಖಲೆ & ಕೂಲಿ (Inward)", count: inwards.length },
+              { id: "sales", label: "೬. ಮಾರಾಟ & ೨೦% ರಿಬೇಟ್ (Sales)", count: sales.length }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => { setTableSubTab(tab.id); setSearchTerm(""); }}
+                className={`px-3 py-2 rounded-lg whitespace-nowrap transition ${
+                  tableSubTab === tab.id
+                    ? "bg-emerald-800 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {tab.label} <span className="ml-1 bg-white/20 px-1.5 py-0.5 rounded-full text-[10px]">{tab.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* TABLE 1: MEMBERS & LOOMS REGISTRY */}
+          {tableSubTab === "members" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">Karnataka Cooperative Act Form No. 4 Register</span>
+                <button 
+                  onClick={() => exportTableToCSV("members_looms_registry.csv", members)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">ಸದಸ್ಯತ್ವ ಸಂ. (ID)</th>
+                      <th className="p-3">ಸದಸ್ಯರ ಹೆಸರು (Name)</th>
+                      <th className="p-3">ಮಗ್ಗದ ವಿಧ (Loom Type)</th>
+                      <th className="p-3">HP ಸಾಮರ್ಥ್ಯ & RR ಸಂ.</th>
+                      <th className="p-3">ನೇಕಾರ ಸಮ್ಮಾನ್ ID</th>
+                      <th className="p-3">ಷೇರು ಬಂಡವಾಳ</th>
+                      <th className="p-3">ಬಾಕಿ ಕೂಲಿ</th>
+                      <th className="p-3">ಸಂಪರ್ಕ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {members
+                      .filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()) || m.id.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(m => (
+                        <tr key={m.id} className="hover:bg-slate-50">
+                          <td className="p-3 font-mono font-bold text-emerald-800">{m.id}</td>
+                          <td className="p-3 font-semibold">{m.name}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              m.type === "POWERLOOM" ? "bg-blue-100 text-blue-800" : "bg-emerald-100 text-emerald-800"
+                            }`}>
+                              {m.type}
+                            </span>
+                          </td>
+                          <td className="p-3">{m.type === "POWERLOOM" ? `${m.hp} HP (${m.rrNo})` : "0.0 HP (Pit Loom)"}</td>
+                          <td className="p-3 font-mono text-[11px]">{m.nekaraId}</td>
+                          <td className="p-3 font-bold">₹{m.shareCap.toLocaleString('en-IN')}</td>
+                          <td className="p-3 font-bold text-indigo-700">₹{m.wageDue}</td>
+                          <td className="p-3 text-slate-500">{m.phone}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TABLE 2: YARN INVENTORY */}
+          {tableSubTab === "yarn" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">Raw Yarn Stock & Procurement Ledger</span>
+                <button 
+                  onClick={() => exportTableToCSV("yarn_inventory.csv", yarnStock)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">ನೂಲು ಕೋಡ್</th>
+                      <th className="p-3">ನೂಲಿನ ವಿವರ (Yarn Description)</th>
+                      <th className="p-3">ಲಾಟ್ ಸಂಖ್ಯೆ (Lot No)</th>
+                      <th className="p-3">ವರ್ಗ</th>
+                      <th className="p-3">ದಾಸ್ತಾನು (Stock KG)</th>
+                      <th className="p-3">ದರ/KG</th>
+                      <th className="p-3">ಒಟ್ಟು ಮೌಲ್ಯ (Value)</th>
+                      <th className="p-3">ಸರಬರಾಜುದಾರರು</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {yarnStock
+                      .filter(y => y.name.toLowerCase().includes(searchTerm.toLowerCase()) || y.lot.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(y => (
+                        <tr key={y.id} className="hover:bg-slate-50">
+                          <td className="p-3 font-mono font-bold text-emerald-800">{y.id}</td>
+                          <td className="p-3 font-bold">{y.name}</td>
+                          <td className="p-3 font-mono">{y.lot}</td>
+                          <td className="p-3"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-semibold">{y.category}</span></td>
+                          <td className="p-3 font-black text-slate-900">{y.stockKg} KG</td>
+                          <td className="p-3">₹{y.ratePerKg}</td>
+                          <td className="p-3 font-bold text-emerald-700">₹{(y.stockKg * y.ratePerKg).toLocaleString('en-IN')}</td>
+                          <td className="p-3 text-slate-500">{y.supplier}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TABLE 3: FINISHED PRODUCTS */}
+          {tableSubTab === "products" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">Finished Textile Stock & Pricing Matrix</span>
+                <button 
+                  onClick={() => exportTableToCSV("finished_products.csv", products)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">SKU ಕೋಡ್</th>
+                      <th className="p-3">ಉತ್ಪನ್ನದ ಹೆಸರು (Product Name)</th>
+                      <th className="p-3">ವರ್ಗ</th>
+                      <th className="p-3">ಪ್ರಮಾಣ ಮಾನ (UOM)</th>
+                      <th className="p-3">ಚಿಲ್ಲರೆ ದರ (Retail ₹)</th>
+                      <th className="p-3">ಸಗಟು ದರ (Wholesale ₹)</th>
+                      <th className="p-3">20% ರಿಬೇಟ್ ಅರ್ಹತೆ</th>
+                      <th className="p-3">HSN ಕೋಡ್</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {products.map(p => (
+                      <tr key={p.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-mono font-bold">{p.id}</td>
+                        <td className="p-3 font-bold text-slate-800">{p.name}</td>
+                        <td className="p-3">{p.cat}</td>
+                        <td className="p-3 font-semibold">{p.uom}</td>
+                        <td className="p-3 font-black text-emerald-800">₹{p.retailRate}</td>
+                        <td className="p-3 font-bold text-slate-700">₹{p.wholesaleRate}</td>
+                        <td className="p-3">
+                          {p.isRebate ? (
+                            <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded">
+                              ✓ YES (20% Handloom)
+                            </span>
+                          ) : (
+                            <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded">No</span>
+                          )}
+                        </td>
+                        <td className="p-3 font-mono">{p.hsn}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TABLE 4: PRODUCTION BATCHES (HANCHIKE) */}
+          {tableSubTab === "hanchike" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">ಹಂಚಿಕೆ ಪುಸ್ತಕ - Raw Material Issue Register</span>
+                <button 
+                  onClick={() => exportTableToCSV("production_batches.csv", batches)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">ಬ್ಯಾಚ್ ಐಡಿ</th>
+                      <th className="p-3">ನೇಕಾರ ಸದಸ್ಯ</th>
+                      <th className="p-3">ನೂಲಿನ ವಿಧ</th>
+                      <th className="p-3">ವಿತರಿಸಿದ ತೂಕ (KG)</th>
+                      <th className="p-3">ಉದ್ದೇಶಿತ ಬಟ್ಟೆ</th>
+                      <th className="p-3">ನಿರೀಕ್ಷಿತ ಉತ್ಪಾದನೆ</th>
+                      <th className="p-3">ದಿನಾಂಕ</th>
+                      <th className="p-3">ಸ್ಥಿತಿ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {batches
+                      .filter(b => b.memberName.toLowerCase().includes(searchTerm.toLowerCase()) || b.id.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(b => (
+                        <tr key={b.id} className="hover:bg-slate-50">
+                          <td className="p-3 font-mono font-bold text-emerald-800">{b.id}</td>
+                          <td className="p-3 font-semibold">{b.memberName} ({b.memberId})</td>
+                          <td className="p-3">{b.yarnName}</td>
+                          <td className="p-3 font-black text-slate-900">{b.weightIssuedKg} KG</td>
+                          <td className="p-3">{b.targetProduct}</td>
+                          <td className="p-3 font-bold">{b.expectedUnits}</td>
+                          <td className="p-3 text-slate-500">{b.issueDate}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              b.status === "OPEN" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                            }`}>
+                              {b.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TABLE 5: FABRIC INWARD & WAGE REGISTER (DAKHALE) */}
+          {tableSubTab === "dakhale" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">ದಾಖಲೆ ಪುಸ್ತಕ - Finished Fabric Inward & Kuli Settlement</span>
+                <button 
+                  onClick={() => exportTableToCSV("fabric_inwards_wages.csv", inwards)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">ದಾಖಲೆ ಸಂ.</th>
+                      <th className="p-3">ನೇಕಾರ ಸದಸ್ಯ</th>
+                      <th className="p-3">ನೂಲು ನೀಡಿದ್ದು (KG)</th>
+                      <th className="p-3">ಬಂದ ಬಟ್ಟೆ + ವೇಸ್ಟೇಜ್</th>
+                      <th className="p-3">ನಷ್ಟ % (Loss)</th>
+                      <th className="p-3">ಉತ್ಪನ್ನ ಪ್ರಮಾಣ</th>
+                      <th className="p-3">ಕೂಲಿ ಕಡಿತ (Penalty)</th>
+                      <th className="p-3">ನಿವ್ವಳ ಕೂಲಿ (Net Kuli)</th>
+                      <th className="p-3">ವೋಚರ್</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {inwards.map(inw => (
+                      <tr key={inw.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-mono font-bold text-emerald-800">{inw.id}</td>
+                        <td className="p-3 font-semibold">{inw.memberName}</td>
+                        <td className="p-3 font-bold">{inw.yarnIssuedKg} KG</td>
+                        <td className="p-3">{inw.fabricWeightKg} + {inw.wastageReturnedKg} KG</td>
+                        <td className="p-3 font-bold">
+                          <span className={inw.lossPct > 3 ? "text-rose-600" : "text-emerald-700"}>
+                            {inw.lossPct}%
+                          </span>
+                        </td>
+                        <td className="p-3 font-bold">{inw.unitsProduced} {inw.uom}</td>
+                        <td className="p-3 font-bold text-rose-600">
+                          {inw.penaltyDeduction > 0 ? `- ₹${inw.penaltyDeduction}` : "₹0"}
+                        </td>
+                        <td className="p-3 font-black text-indigo-700 text-sm">₹{inw.netWage}</td>
+                        <td className="p-3">
+                          <button 
+                            onClick={() => onPrint("WAGE_VOUCHER", inw)}
+                            className="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-[11px] font-bold border"
+                          >
+                            🖨️ Slip
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TABLE 6: SALES & 20% REBATE LEDGER */}
+          {tableSubTab === "sales" && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500">Sales Invoices & Handloom 20% Rebate Subsidy Register</span>
+                <button 
+                  onClick={() => exportTableToCSV("sales_invoices.csv", sales)}
+                  className="text-emerald-700 hover:underline font-bold"
+                >
+                  📥 Export to CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto border rounded-xl">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 font-bold text-slate-700 border-b">
+                    <tr>
+                      <th className="p-3">ರಶೀದಿ ಸಂ. (Bill)</th>
+                      <th className="p-3">ದಿನಾಂಕ</th>
+                      <th className="p-3">ಗ್ರಾಹಕರು / ಸಂಸ್ಥೆ</th>
+                      <th className="p-3">ವಿಧಾನ</th>
+                      <th className="p-3">ಒಟ್ಟು ಮೊತ್ತ (Gross)</th>
+                      <th className="p-3 text-amber-700">20% ರಿಬೇಟ್ (Govt Subsidy)</th>
+                      <th className="p-3 text-emerald-800">ವಸೂಲಿ ನಗದು (Net Paid)</th>
+                      <th className="p-3">ಪಾವತಿ ವಿಧಾನ</th>
+                      <th className="p-3">ರಸೀದಿ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y text-slate-700">
+                    {sales.map(s => (
+                      <tr key={s.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-mono font-bold text-emerald-800">{s.id}</td>
+                        <td className="p-3 text-slate-500">{s.date}</td>
+                        <td className="p-3 font-semibold">{s.customer}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            s.type === "RETAIL" ? "bg-amber-100 text-amber-900" : "bg-indigo-100 text-indigo-900"
+                          }`}>
+                            {s.type}
+                          </span>
+                        </td>
+                        <td className="p-3 font-bold">₹{s.gross.toLocaleString('en-IN')}</td>
+                        <td className="p-3 font-black text-amber-600">₹{s.rebateAmt.toLocaleString('en-IN')}</td>
+                        <td className="p-3 font-black text-emerald-700 text-sm">₹{s.net.toLocaleString('en-IN')}</td>
+                        <td className="p-3"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px]">{s.payment}</span></td>
+                        <td className="p-3">
+                          <button 
+                            onClick={() => onPrint("INVOICE", s)}
+                            className="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded text-[11px] font-bold border"
+                          >
+                            🖨️ Bill
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Modal: Add New Member
+    function NewMemberModal({ t, onClose, onSave }) {
+      const [name, setName] = useState("");
+      const [type, setType] = useState("HANDLOOM_PIT");
+      const [hp, setHp] = useState(0);
+      const [rrNo, setRrNo] = useState("");
+      const [nekaraId, setNekaraId] = useState("");
+      const [shareCap, setShareCap] = useState(5000);
+      const [phone, setPhone] = useState("");
+
+      const handleSave = (e) => {
+        e.preventDefault();
+        const newM = {
+          id: "M-" + Math.floor(106 + Math.random() * 800),
+          name,
+          type,
+          hp: type === "POWERLOOM" ? parseFloat(hp) : 0,
+          rrNo: type === "POWERLOOM" ? rrNo : "N/A",
+          nekaraId,
+          shareCap: parseFloat(shareCap),
+          phone,
+          wageDue: 0
+        };
+        onSave(newM);
+      };
+
+      return (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <h3 className="font-bold text-slate-900 text-sm border-b pb-2">ಹೊಸ ನೇಕಾರ ಸದಸ್ಯರ ನೋಂದಣಿ</h3>
+            <form onSubmit={handleSave} className="space-y-3 text-xs">
+              <input type="text" placeholder="ಸದಸ್ಯರ ಪೂರ್ಣ ಹೆಸರು (Full Name)*" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 border rounded-lg" required />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={type} onChange={e => setType(e.target.value)} className="p-2 border rounded-lg font-semibold">
+                  <option value="HANDLOOM_PIT">ಕೈಮಗ್ಗ - ಪಿಟ್ ಲೂಮ್</option>
+                  <option value="HANDLOOM_FRAME">ಕೈಮಗ್ಗ - ಫ್ರೇಮ್ ಲೂಮ್</option>
+                  <option value="POWERLOOM">ವಿದ್ಯುತ್ ಮಗ್ಗ (Powerloom)</option>
+                </select>
+                <input type="tel" placeholder="ದೂರವಾಣಿ ಸಂಖ್ಯೆ*" value={phone} onChange={e => setPhone(e.target.value)} className="p-2 border rounded-lg" required />
+              </div>
+              <input type="text" placeholder="ನೇಕಾರ ಸಮ್ಮಾನ್ ID (e.g. NS-KAR-2026-902)*" value={nekaraId} onChange={e => setNekaraId(e.target.value)} className="w-full p-2 border rounded-lg" required />
+              <input type="number" placeholder="ಷೇರು ಬಂಡವಾಳ (Share Capital ₹)*" value={shareCap} onChange={e => setShareCap(e.target.value)} className="w-full p-2 border rounded-lg" required />
+              {type === "POWERLOOM" && (
+                <div className="grid grid-cols-2 gap-2 bg-amber-50 p-2 rounded-lg border border-amber-200">
+                  <input type="number" step="0.5" placeholder="ಮೋಟರ್ HP" value={hp} onChange={e => setHp(e.target.value)} className="p-2 border rounded-lg" required />
+                  <input type="text" placeholder="ವಿದ್ಯುತ್ RR ಸಂ." value={rrNo} onChange={e => setRrNo(e.target.value)} className="p-2 border rounded-lg" required />
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className="flex-1 bg-emerald-800 text-white font-bold py-2 rounded-lg">ಉಳಿಸಿ</button>
+                <button type="button" onClick={onClose} className="bg-slate-200 px-4 py-2 rounded-lg font-bold">ರದ್ದು</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // Modal: Add New Yarn Lot
+    function NewYarnModal({ t, onClose, onSave }) {
+      const [name, setName] = useState("");
+      const [lot, setLot] = useState("");
+      const [category, setCategory] = useState("COTTON_HANK");
+      const [stockKg, setStockKg] = useState("");
+      const [ratePerKg, setRatePerKg] = useState("");
+      const [supplier, setSupplier] = useState("");
+
+      const handleSave = (e) => {
+        e.preventDefault();
+        const newY = {
+          id: "Y-0" + Math.floor(6 + Math.random() * 90),
+          name,
+          lot,
+          category,
+          stockKg: parseFloat(stockKg),
+          ratePerKg: parseFloat(ratePerKg),
+          supplier
+        };
+        onSave(newY);
+      };
+
+      return (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+            <h3 className="font-bold text-slate-900 text-sm border-b pb-2">ಹೊಸ ನೂಲು ದಾಸ್ತಾನು ನೋಂದಣಿ</h3>
+            <form onSubmit={handleSave} className="space-y-3 text-xs">
+              <input type="text" placeholder="ನೂಲಿನ ಹೆಸರು (e.g. Cotton Hank 40s)*" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 border rounded-lg" required />
+              <div className="grid grid-cols-2 gap-2">
+                <input type="text" placeholder="ಲಾಟ್ ಸಂಖ್ಯೆ*" value={lot} onChange={e => setLot(e.target.value)} className="p-2 border rounded-lg" required />
+                <select value={category} onChange={e => setCategory(e.target.value)} className="p-2 border rounded-lg">
+                  <option value="COTTON_HANK">ಕೈಮಗ್ಗ ಹ್ಯಾಂಕ್</option>
+                  <option value="POLY_CONE">ವಿದ್ಯುತ್ ಮಗ್ಗ ಕೋನ್</option>
+                  <option value="ZARI_SPOOL">ಜರಿ ಸ್ಪೂಲ್</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" step="0.1" placeholder="ತೂಕ (KG)*" value={stockKg} onChange={e => setStockKg(e.target.value)} className="p-2 border rounded-lg" required />
+                <input type="number" placeholder="ದರ/KG ₹*" value={ratePerKg} onChange={e => setRatePerKg(e.target.value)} className="p-2 border rounded-lg" required />
+              </div>
+              <input type="text" placeholder="ಸರಬರಾಜುದಾರರು (Mill / Depot)*" value={supplier} onChange={e => setSupplier(e.target.value)} className="w-full p-2 border rounded-lg" required />
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className="flex-1 bg-emerald-800 text-white font-bold py-2 rounded-lg">ದಾಸ್ತಾನು ಸೇರಿಸಿ</button>
+                <button type="button" onClick={onClose} className="bg-slate-200 px-4 py-2 rounded-lg font-bold">ರದ್ದು</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

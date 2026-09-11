@@ -62,6 +62,11 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 def serve_index():
     return FileResponse(os.path.join(static_dir, "index.html"))
 
+@app.get("/banashri")
+def serve_banashri():
+    return FileResponse(os.path.join(static_dir, "banashri.html"))
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "platform": "Karnataka Handloom Cooperative Platform", "version": "2.0.0"}
+
