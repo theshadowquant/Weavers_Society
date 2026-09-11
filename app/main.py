@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.database.session import init_db
+from app.database.session import init_db, DB_PATH
 from app.database.seed import seed_database
 from app.api.auth_routes import router as auth_router
 from app.api.onboarding_routes import router as onboarding_router
@@ -18,10 +18,9 @@ from app.api.report_routes import router as report_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Auto-initialize database on startup if society.db doesn't exist
-    db_path = os.environ.get("SOCIETY_DB_PATH", os.path.join(os.path.dirname(__file__), "society.db"))
-    if not os.path.exists(db_path):
-        print(f"Initializing first-principles handloom database at {db_path}...")
+    # Auto-initialize database on startup if database doesn't exist
+    if not os.path.exists(DB_PATH):
+        print(f"Initializing first-principles handloom database at {DB_PATH}...")
         seed_database()
     yield
 

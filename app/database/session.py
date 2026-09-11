@@ -3,7 +3,12 @@ import os
 from contextlib import contextmanager
 from typing import Generator
 
-DB_PATH = os.environ.get("SOCIETY_DB_PATH", os.path.join(os.path.dirname(os.path.dirname(__file__)), "society.db"))
+if os.environ.get("VERCEL") == "1":
+    default_db = "/tmp/society.db"
+else:
+    default_db = os.path.join(os.path.dirname(os.path.dirname(__file__)), "society.db")
+
+DB_PATH = os.environ.get("SOCIETY_DB_PATH", default_db)
 
 def get_db_connection() -> sqlite3.Connection:
     """Creates a new SQLite database connection with row factory and foreign keys enabled."""
