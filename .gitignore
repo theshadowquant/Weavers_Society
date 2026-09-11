@@ -55,3 +55,9 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Firebase & Cloud Credentials
+*firebase*.json
+*-adminsdk-*.json
+service-account*.json
+credentials.json

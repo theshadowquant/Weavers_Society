@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS tenant_onboarding_drafts (
 -- 3. USERS & RBAC
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
+    firebase_uid TEXT UNIQUE,
     email TEXT UNIQUE,
     phone TEXT UNIQUE,
     full_name TEXT NOT NULL,
@@ -56,6 +57,9 @@ CREATE TABLE IF NOT EXISTS users (
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);
+
 
 CREATE TABLE IF NOT EXISTS user_tenant_roles (
     id TEXT PRIMARY KEY,

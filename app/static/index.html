@@ -64,12 +64,19 @@
           <span id="tenant-name-badge" style="font-weight:700;">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</span>
         </div>
 
+        <!-- Live Firebase Cloud Status & Sync Control -->
+        <div id="firebase-cloud-badge" class="firebase-badge" title="Click to sync society data to Cloud Firestore" onclick="handleCloudSyncClick()" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.25rem 0.65rem; border-radius:20px; font-size:0.75rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); cursor:pointer; user-select:none;">
+          <span id="firebase-status-dot" style="width:8px; height:8px; border-radius:50%; background:#9ca3af;"></span>
+          <span id="firebase-status-text" style="font-weight:600; color:#f3f4f6;">Cloud: Checking...</span>
+        </div>
+
         <!-- Authenticated User Profile & Role -->
         <span id="user-profile-badge" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;"></span>
 
         <!-- Dynamic Society Switcher (Only populated if user belongs to 2+ societies) -->
         <select id="society-switch-select" class="form-input" style="display:none; padding:0.35rem 0.6rem; font-size:0.75rem; max-width:200px;" onchange="handleTenantSwitch(this.value)">
         </select>
+
 
         <button class="btn-lang" id="lang-toggle-btn" onclick="toggleLanguage()">
           English

@@ -101,7 +101,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   setupGlobalListeners();
+  initFirebaseStatus();
 });
+
+async function initFirebaseStatus() {
+  const dot = document.getElementById("firebase-status-dot");
+  const txt = document.getElementById("firebase-status-text");
+  if (!dot || !txt) return;
+
+  try {
+    const status = await api.getFirebaseStatus();
+    if (status.connected) {
+      dot.style.background = "#10b981";
+      const proj = status.project_id || "Live";
+      txt.innerText = `☁️ Cloud: ${proj} (Active)`;
+      txt.style.color = "#d1fae5";
+    } else {
+      dot.style.background = "#ef4444";
+      txt.innerText = "☁️ Cloud: Offline";
+      txt.style.color = "#fecaca";
+    }
+  } catch (err) {
+    dot.style.background = "#f59e0b";
+    txt.innerText = "☁️ Cloud: Connecting...";
+    txt.style.color = "#fef3c7";
+  }
+}
+
+async function handleCloudSyncClick() {
+  if (!state.currentTenant) {
+    alert("ದಯವಿಟ್ಟು ಮೊದಲು ನಿಮ್ಮ ಸಂಘದ ಖಾತೆಗೆ ಲಾಗಿನ್ ಮಾಡಿ (Please login to your society first).");
+    return;
+  }
+
+  const txt = document.getElementById("firebase-status-text");
+  const originalText = txt ? txt.innerText : "";
+  if (txt) txt.innerText = "☁️ Syncing...";
+
+  try {
+    const res = await api.syncTenantToFirebase();
+    if (res.synced) {
+      alert(`ಸಂಘದ ಮಾಹಿತಿಯನ್ನು Cloud Firestore ಗೆ ಯಶಸ್ವಿಯಾಗಿ ಸಿಂಕ್ ಮಾಡಲಾಗಿದೆ!\nಸಂಘ: ${res.society_name || state.currentTenant.tenant_name_kn}\nನೇಕಾರರು: ${res.members_synced}\nಉತ್ಪನ್ನಗಳು: ${res.products_synced}\nಸ್ಥಿತಿ: Cloud Firestore Connected`);
+    } else {
+      alert("ಸಿಂಕ್ ವಿಫಲವಾಗಿದೆ: " + (res.reason || res.error || "Unknown error"));
+    }
+  } catch (err) {
+    alert("ಕ್ಲೌಡ್ ಸಿಂಕ್ ದೋಷ: " + err.message);
+  } finally {
+    await initFirebaseStatus();
+  }
+}
+
 
 function showLandingPage() {
   const l = document.getElementById("landing-section");

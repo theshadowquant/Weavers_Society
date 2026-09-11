@@ -16,6 +16,7 @@ from app.api.sales_routes import router as sales_router
 from app.api.report_routes import router as report_router
 from app.api.product_routes import router as product_router
 from app.api.purchase_routes import router as purchase_router
+from app.api.system_routes import router as system_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +52,7 @@ app.include_router(sales_router, prefix="/api/v1")
 app.include_router(report_router, prefix="/api/v1")
 app.include_router(product_router, prefix="/api/v1")
 app.include_router(purchase_router, prefix="/api/v1")
+app.include_router(system_router, prefix="/api/v1")
 
 # Static Assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")

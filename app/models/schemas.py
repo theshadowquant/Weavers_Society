@@ -54,8 +54,30 @@ class LoginRequest(BaseModel):
     tenant_slug: Optional[str] = None
     tenant_id: Optional[str] = None
 
+class FirebaseLoginRequest(BaseModel):
+    id_token: str
+    tenant_slug: Optional[str] = None
+    tenant_id: Optional[str] = None
+
+class FirebaseCustomTokenResponse(BaseModel):
+    custom_token: str
+    project_id: str
+    user_id: str
+    tenant_id: str
+    role: str
+
+class FirebaseStatusResponse(BaseModel):
+    status: str
+    connected: bool
+    project_id: Optional[str] = None
+    firestore_ready: bool
+    auth_ready: bool
+    message: Optional[str] = None
+    error: Optional[str] = None
+
 class SwitchTenantRequest(BaseModel):
     target_tenant_id: str
+
 
 class TokenResponse(BaseModel):
     access_token: str

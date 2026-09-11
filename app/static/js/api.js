@@ -190,6 +190,31 @@ class ApiClient {
   async getRebateClaimsSchedule() {
     return await this.request("/reports/rebate-claims");
   }
+
+  // Cloud & Firebase Services
+  async getFirebaseStatus() {
+    return await this.request("/system/firebase-status");
+  }
+
+  async syncTenantToFirebase() {
+    return await this.request("/system/firebase-sync", {
+      method: "POST"
+    });
+  }
+
+  async firebaseLogin(idToken, tenantSlug = null, tenantId = null) {
+    const data = await this.request("/auth/firebase-login", {
+      method: "POST",
+      body: JSON.stringify({ id_token: idToken, tenant_slug: tenantSlug, tenant_id: tenantId })
+    });
+    this.setSession(data.access_token, data);
+    return data;
+  }
+
+  async getFirebaseCustomToken() {
+    return await this.request("/auth/firebase-token");
+  }
 }
 
 const api = new ApiClient();
+

@@ -27,6 +27,16 @@ def _ensure_schema(conn: sqlite3.Connection):
                     seed_database()
             except Exception as e:
                 print("Auto-seed info:", e)
+    else:
+        # Check for column migrations on existing database
+        try:
+            cursor.execute("PRAGMA table_info(users)")
+            cols = [r["name"] for r in cursor.fetchall()]
+            if "firebase_uid" not in cols:
+                cursor.execute("ALTER TABLE users ADD COLUMN firebase_uid TEXT;")
+                cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);")
+        except Exception as e:
+            pass
 
 def get_db_connection() -> sqlite3.Connection:
     """Creates a new SQLite database connection with row factory and foreign keys enabled."""

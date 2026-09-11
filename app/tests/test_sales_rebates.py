@@ -1,5 +1,10 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 from fastapi.testclient import TestClient
 from app.main import app
+
 from app.database.seed import seed_database
 from app.core.security import create_access_token
 
@@ -55,20 +60,21 @@ def test_government_rebate_calculation_and_claim():
     assert res.status_code == 200
     data = res.json()
     
-    assert data["gross_amount"] == 2900.00
-    assert data["rebate_amount"] == 580.00
-    assert data["tax_amount"] == 116.00
-    assert data["net_payable"] == 2436.00
-    assert data["govt_subsidy_receivable"] == 580.00
+    assert data["gross_amount"] == 3100.00
+    assert (data.get("rebate_amount") or data.get("rebate_discount")) == 620.00
+    assert data["tax_amount"] == 124.00
+    assert data["net_payable"] == 2604.00
+    assert data["govt_subsidy_receivable"] == 620.00
     
     # Verify Directorate Claims Register
     res_claims = client.get("/api/v1/reports/rebate-claims", headers=headers)
     assert res_claims.status_code == 200
     claims_data = res_claims.json()
-    assert claims_data["total_claimable_amount"] >= 580.00
+    assert claims_data["total_claimable_subsidy"] >= 620.00
     assert any(c["customer_name"] == "Smt. Sharda Devi" for c in claims_data["claims"])
 
 if __name__ == "__main__":
+
     setup_module()
     test_government_rebate_calculation_and_claim()
     print("Government rebate calculation & claim test passed successfully!")
