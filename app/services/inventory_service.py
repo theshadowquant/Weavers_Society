@@ -57,6 +57,50 @@ def get_yarn_lot_stock_in_godown(tenant_id: str, yarn_lot_id: str) -> float:
         row = cursor.fetchone()
         return float(row["current_stock_kgs"]) if row else 0.0
 
+def create_yarn_lot(tenant_id: str, data) -> Dict[str, Any]:
+    lot_id = str(uuid.uuid4())
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM yarn_lots WHERE tenant_id = ? AND lot_number = ?", (tenant_id, data.lot_number))
+        existing = cursor.fetchone()
+        if existing:
+            return {"id": existing["id"], "lot_number": data.lot_number, "status": "EXISTING"}
+            
+        conn.execute("""
+            INSERT INTO yarn_lots (
+                id, tenant_id, lot_number, yarn_type, count_spec, shade_code, mill_name, hsn_code, unit_cost_per_kg
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            lot_id, tenant_id, data.lot_number, data.yarn_type, data.count_spec,
+            data.shade_code or "Natural/White", data.mill_name, getattr(data, "hsn_code", "5205") or "5205",
+            data.unit_cost_per_kg
+        ))
+        return {
+            "id": lot_id,
+            "lot_number": data.lot_number,
+            "yarn_type": data.yarn_type,
+            "count_spec": data.count_spec,
+            "mill_name": data.mill_name,
+            "unit_cost_per_kg": data.unit_cost_per_kg,
+            "status": "CREATED"
+        }
+
+def list_yarn_lots(tenant_id: str) -> List[Dict[str, Any]]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT yl.id, yl.lot_number, yl.yarn_type, yl.count_spec, yl.shade_code,
+                   yl.mill_name, yl.hsn_code, yl.unit_cost_per_kg, yl.created_at,
+                   COALESCE(SUM(il.quantity_delta), 0.0) as stock_kgs
+            FROM yarn_lots yl
+            LEFT JOIN warehouses w ON w.tenant_id = yl.tenant_id AND w.storage_type = 'RAW_YARN_GODOWN'
+            LEFT JOIN inventory_ledger il ON il.yarn_lot_id = yl.id AND il.warehouse_id = w.id
+            WHERE yl.tenant_id = ? AND yl.is_active = 1
+            GROUP BY yl.id
+            ORDER BY yl.created_at DESC
+        """, (tenant_id,))
+        return [dict(r) for r in cursor.fetchall()]
+
 def get_inventory_status_by_state(tenant_id: str) -> Dict[str, Any]:
     """
     Aggregates inventory categorized by operational state:
@@ -65,17 +109,17 @@ def get_inventory_status_by_state(tenant_id: str) -> Dict[str, Any]:
     with get_db() as conn:
         cursor = conn.cursor()
         
-        # 1. Raw Yarn Godown
+        # 1. Raw Yarn Godown - show all registered yarn lots and their current stock
         cursor.execute("""
-            SELECT yl.lot_number, yl.yarn_type, yl.count_spec, yl.mill_name,
+            SELECT yl.id, yl.lot_number, yl.yarn_type, yl.count_spec, yl.mill_name, yl.shade_code,
                    COALESCE(SUM(il.quantity_delta), 0.0) as stock_kgs,
                    yl.unit_cost_per_kg
             FROM yarn_lots yl
-            JOIN warehouses w ON w.tenant_id = yl.tenant_id AND w.storage_type = 'RAW_YARN_GODOWN'
+            LEFT JOIN warehouses w ON w.tenant_id = yl.tenant_id AND w.storage_type = 'RAW_YARN_GODOWN'
             LEFT JOIN inventory_ledger il ON il.yarn_lot_id = yl.id AND il.warehouse_id = w.id
             WHERE yl.tenant_id = ? AND yl.is_active = 1
             GROUP BY yl.id
-            HAVING stock_kgs > 0
+            ORDER BY yl.created_at DESC
         """, (tenant_id,))
         raw_yarn = [dict(r) for r in cursor.fetchall()]
         

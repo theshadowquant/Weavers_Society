@@ -144,9 +144,48 @@ class ApiClient {
     });
   }
 
-  // Multi-State Inventory
+  // Multi-State Inventory & Raw Materials
   async getInventoryStatus() {
     return await this.request("/inventory/status");
+  }
+
+  async getYarnLots() {
+    return await this.request("/inventory/yarn-lots");
+  }
+
+  async createYarnLot(payload) {
+    return await this.request("/inventory/yarn-lots", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async getSuppliers() {
+    return await this.request("/purchases/suppliers");
+  }
+
+  async createSupplier(payload) {
+    return await this.request("/purchases/suppliers", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async getPurchases() {
+    return await this.request("/purchases/invoices");
+  }
+
+  async createPurchase(payload) {
+    return await this.request("/purchases/invoices", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async postPurchase(invoiceId) {
+    return await this.request(`/purchases/invoices/${invoiceId}/post`, {
+      method: "POST"
+    });
   }
 
   async getInventoryJournal(limit = 40) {

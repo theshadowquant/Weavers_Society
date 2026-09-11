@@ -628,33 +628,97 @@ async function loadProductionSection() {
 // -------------------------------------------------------------------
 // 4. MULTI-STATE INVENTORY
 // -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// 4. MULTI-STATE INVENTORY & RAW MATERIAL PROCUREMENT
+// -------------------------------------------------------------------
 async function loadInventorySection() {
   const container = document.getElementById("sec-inventory");
   if (!container) return;
 
   try {
-    const status = await api.getInventoryStatus();
-    const journal = await api.getInventoryJournal(30);
+    const [status, journal, purchases] = await Promise.all([
+      api.getInventoryStatus(),
+      api.getInventoryJournal(30),
+      api.getPurchases().catch(() => [])
+    ]);
+
+    const totalYarnKgs = (status.raw_yarn_godown || []).reduce((acc, y) => acc + (parseFloat(y.stock_kgs) || 0), 0);
+    const totalYarnVal = (status.raw_yarn_godown || []).reduce((acc, y) => acc + ((parseFloat(y.stock_kgs) || 0) * (parseFloat(y.unit_cost_per_kg) || 0)), 0);
+    const totalShowroomPcs = (status.showroom_stock || []).reduce((acc, s) => acc + (parseInt(s.available_pieces) || 0), 0);
+    const totalPurchasesCount = (purchases || []).length;
 
     container.innerHTML = `
+      <!-- Top Action Toolbar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem; background:#ffffff; padding:1rem 1.25rem; border-radius:8px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div>
+          <h2 style="margin:0; font-size:1.15rem; color:var(--primary-navy); font-weight:700;">
+            🧶 ವಸ್ತು ಮತ್ತು ದಾಸ್ತಾನು ನಿರ್ವಹಣೆ (Multi-State Handloom Inventory)
+          </h2>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">
+            ಕಚ್ಚಾ ನೂಲು ಖರೀದಿ, ಗೋದಾಮು ದಾಸ್ತಾನು, ನೇಕಾರರ ಚಾಲ್ತಿ (WIP) ಮತ್ತು ಮಳಿಗೆಯ ಸಿದ್ಧ ಸರಕುಗಳ ಸಂಪೂರ್ಣ ನಿರ್ವಹಣೆ
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn-inst btn-inst-primary" onclick="openAddPurchaseModal()" style="font-weight:700; box-shadow:0 2px 4px rgba(220,38,38,0.2);">
+            + ಹೊಸ ನೂಲು ಖರೀದಿ / ಇನ್ವಾಯ್ಸ್ (Add Yarn Purchase)
+          </button>
+          <button class="btn-inst btn-inst-secondary" onclick="openAddYarnLotModal()">
+            + ಹೊಸ ನೂಲು ಲಾಟ್ (Add Lot)
+          </button>
+          <button class="btn-inst btn-inst-secondary" onclick="openAddSupplierModal()">
+            🏢 ಸರಬರಾಜುದಾರರ ನೋಂದಣಿ (Add Supplier)
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+        <div style="background:#ffffff; border-left:4px solid var(--accent-emerald); border-radius:6px; padding:0.85rem 1rem; border-top:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+          <div style="font-size:0.75rem; color:#64748b; font-weight:600;">ಒಟ್ಟು ನೂಲು ದಾಸ್ತಾನು (Yarn Stock)</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--primary-navy); margin-top:0.25rem;">${totalYarnKgs.toFixed(2)} <span style="font-size:0.85rem; font-weight:500;">Kgs</span></div>
+        </div>
+        <div style="background:#ffffff; border-left:4px solid var(--primary-navy); border-radius:6px; padding:0.85rem 1rem; border-top:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+          <div style="font-size:0.75rem; color:#64748b; font-weight:600;">ನೂಲು ದಾಸ್ತಾನು ಮೌಲ್ಯ (Valuation)</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--accent-emerald); margin-top:0.25rem;">${formatCurrency(totalYarnVal)}</div>
+        </div>
+        <div style="background:#ffffff; border-left:4px solid var(--primary-crimson); border-radius:6px; padding:0.85rem 1rem; border-top:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+          <div style="font-size:0.75rem; color:#64748b; font-weight:600;">ಸಿದ್ಧ ಸರಕುಗಳು (Showroom Goods)</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--primary-navy); margin-top:0.25rem;">${totalShowroomPcs} <span style="font-size:0.85rem; font-weight:500;">Pcs</span></div>
+        </div>
+        <div style="background:#ffffff; border-left:4px solid #f59e0b; border-radius:6px; padding:0.85rem 1rem; border-top:1px solid #e2e8f0; border-right:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+          <div style="font-size:0.75rem; color:#64748b; font-weight:600;">ದಾಖಲಾದ ಖರೀದಿ ಬಿಲ್‌ಗಳು (Inward Invoices)</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--primary-navy); margin-top:0.25rem;">${totalPurchasesCount}</div>
+        </div>
+      </div>
+
+      <!-- Main Storage Split -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
         <!-- Central Yarn Godown -->
         <div class="card-inst">
-          <div class="card-inst-header">
+          <div class="card-inst-header" style="display:flex; justify-content:space-between; align-items:center;">
             <div class="card-inst-title">🧶 ಕೇಂದ್ರ ನೂಲು ಗೋದಾಮು (Raw Yarn Godown)</div>
+            <button class="btn-inst btn-inst-secondary" style="font-size:0.75rem; padding:0.25rem 0.5rem;" onclick="openAddPurchaseModal()">+ ಖರೀದಿ ಜಮಾ</button>
           </div>
           <table class="ledger-table" style="font-size:0.8rem;">
-            <thead><tr><th>ಲಾಟ್ ಸಂಖ್ಯೆ</th><th>ಕೌಂಟ್ / ನೂಲು</th><th>ಗಿರಣಿ</th><th>ದಾಸ್ತಾನು (Kgs)</th><th>ದರ/Kg</th></tr></thead>
+            <thead><tr><th>ಲಾಟ್ ಸಂಖ್ಯೆ</th><th>ಕೌಂಟ್ / ನೂಲು</th><th>ಗಿರಣಿ</th><th>ದಾಸ್ತಾನು (Kgs)</th><th>ದರ/Kg</th><th>ಕ್ರಮ</th></tr></thead>
             <tbody>
               ${status.raw_yarn_godown.map(y => `
                 <tr>
                   <td><strong>${y.lot_number}</strong></td>
-                  <td>${y.count_spec} (${y.yarn_type})</td>
+                  <td>${y.count_spec} <br/><small style="color:#64748b;">(${y.yarn_type})</small></td>
                   <td>${y.mill_name}</td>
-                  <td style="font-weight:700; color:var(--primary-navy);">${y.stock_kgs} Kgs</td>
+                  <td style="font-weight:700; color:${parseFloat(y.stock_kgs) > 0 ? 'var(--accent-emerald)' : 'var(--primary-crimson)'};">
+                    ${y.stock_kgs} Kgs
+                  </td>
                   <td>${formatCurrency(y.unit_cost_per_kg)}</td>
+                  <td>
+                    <button class="btn-inst btn-inst-secondary" style="font-size:0.7rem; padding:0.15rem 0.4rem;" 
+                            onclick="openAddPurchaseModal('${y.lot_number}', '${y.count_spec}', '${y.mill_name}', ${y.unit_cost_per_kg}, '${y.yarn_type}')">
+                      + ಖರೀದಿ
+                    </button>
+                  </td>
                 </tr>
-              `).join("") || '<tr><td colspan="5" style="text-align:center;">ಗೋದಾಮಿನಲ್ಲಿ ನೂಲು ಇಲ್ಲ</td></tr>'}
+              `).join("") || '<tr><td colspan="6" style="text-align:center; padding:1.5rem;">ಗೋದಾಮಿನಲ್ಲಿ ನೂಲು ಇಲ್ಲ. ಮೇಲಿನ "+ ಹೊಸ ನೂಲು ಖರೀದಿ" ಕ್ಲಿಕ್ ಮಾಡಿ ಸೇರಿಸಿ.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -677,7 +741,63 @@ async function loadInventorySection() {
                   </td>
                   <td>${formatCurrency(s.retail_rate)}</td>
                 </tr>
-              `).join("") || '<tr><td colspan="5" style="text-align:center;">ಸಿದ್ಧ ದಾಸ್ತಾನು ಖಾಲಿಯಾಗಿದೆ</td></tr>'}
+              `).join("") || '<tr><td colspan="5" style="text-align:center; padding:1.5rem;">ಸಿದ್ಧ ದಾಸ್ತಾನು ಖಾಲಿಯಾಗಿದೆ</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Raw Material Inward Purchase Invoices Ledger -->
+      <div class="card-inst" style="margin-bottom:1.5rem;">
+        <div class="card-inst-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="card-inst-title">📋 ಕಚ್ಚಾ ವಸ್ತು ಖರೀದಿ ಬಿಲ್‌ಗಳ ಲೆಡ್ಜರ್ (Raw Material Purchase Invoices)</div>
+          <button class="btn-inst btn-inst-primary" style="font-size:0.8rem;" onclick="openAddPurchaseModal()">+ ಹೊಸ ಖರೀದಿ ಇನ್ವಾಯ್ಸ್ ದಾಖಲಿಸಿ</button>
+        </div>
+        <div class="ledger-table-wrap">
+          <table class="ledger-table" style="font-size:0.8rem;">
+            <thead>
+              <tr>
+                <th>ಸಂಘದ ಜಮಾ ನಂ (Entry No)</th>
+                <th>ಸರಬರಾಜುದಾರರ ಬಿಲ್ ನಂ</th>
+                <th>ದಿನಾಂಕ</th>
+                <th>ಸರಬರಾಜುದಾರ / ಗಿರಣಿ</th>
+                <th>ಖರೀದಿಸಿದ ನೂಲು ವಿವರಗಳು</th>
+                <th>ಒಟ್ಟು ಮೊತ್ತ (₹)</th>
+                <th>ಸ್ಥಿತಿ (Status)</th>
+                <th>ಕ್ರಮ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${purchases.map(p => `
+                <tr>
+                  <td><strong>${p.society_entry_no}</strong></td>
+                  <td>${p.invoice_no}</td>
+                  <td>${p.invoice_date}</td>
+                  <td>${p.supplier_name}</td>
+                  <td>
+                    ${(p.items && p.items.length) ? p.items.map(it => `
+                      <span style="display:inline-block; background:#f1f5f9; padding:2px 6px; border-radius:4px; margin:2px; font-size:0.75rem;">
+                        <strong>${it.lot_number || 'Yarn'}</strong>: ${it.quantity_kgs} Kgs @ ${formatCurrency(it.rate_per_unit)}
+                      </span>
+                    `).join("") : '<span style="color:#94a3b8;">ವಿವರವಿಲ್ಲ</span>'}
+                  </td>
+                  <td style="font-weight:700; color:var(--primary-navy);">${formatCurrency(p.total_amount)}</td>
+                  <td>
+                    <span class="badge-state ${p.status === 'POSTED' ? 'active' : 'wip'}">
+                      ${p.status === 'POSTED' ? 'ದಾಸ್ತಾನು ಜಮಾ ಆಗಿದೆ ✓' : 'ಕರಡು (DRAFT)'}
+                    </span>
+                  </td>
+                  <td>
+                    ${p.status === 'DRAFT' ? `
+                      <button class="btn-inst btn-inst-primary" style="font-size:0.7rem; padding:0.2rem 0.5rem;" onclick="postExistingPurchase('${p.id}')">
+                        ದಾಸ್ತಾನು ಜಮಾ ಮಾಡಿ
+                      </button>
+                    ` : `
+                      <span style="font-size:0.75rem; color:#10b981; font-weight:600;">ಪೂರ್ಣಗೊಂಡಿದೆ</span>
+                    `}
+                  </td>
+                </tr>
+              `).join("") || '<tr><td colspan="8" style="text-align:center; padding:1.5rem;">ಯಾವುದೇ ಖರೀದಿ ಇನ್ವಾಯ್ಸ್ ದಾಖಲಾಗಿಲ್ಲ. ಮೇಲಿನ "+ ಹೊಸ ನೂಲು ಖರೀದಿ / ಇನ್ವಾಯ್ಸ್" ಕ್ಲಿಕ್ ಮಾಡಿ.</td></tr>'}
             </tbody>
           </table>
         </div>
@@ -706,14 +826,214 @@ async function loadInventorySection() {
                   <td>${formatCurrency(j.unit_cost)}</td>
                   <td><small style="color:var(--text-muted);">${j.notes || j.reference_type}</small></td>
                 </tr>
-              `).join("")}
+              `).join("") || '<tr><td colspan="7" style="text-align:center; padding:1rem;">ದಾಸ್ತಾನು ಜರ್ನಲ್ ವಹಿವಾಟುಗಳು ಲಭ್ಯವಿಲ್ಲ</td></tr>'}
             </tbody>
           </table>
         </div>
       </div>
     `;
   } catch (err) {
-    container.innerHTML = `<div style="color:var(--primary-crimson);">ದೋಷ: ${err.message}</div>`;
+    container.innerHTML = `
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:1.5rem; text-align:center;">
+        <div style="font-size:1.1rem; font-weight:700; color:#b91c1c; margin-bottom:0.5rem;">ದಾಸ್ತಾನು ವಿವರಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ</div>
+        <div style="color:#7f1d1d; margin-bottom:1rem;">${err.message}</div>
+        <button class="btn-inst btn-inst-primary" onclick="window.location.reload()">ಪುಟವನ್ನು ಮರುಲೋಡ್ ಮಾಡಿ (Reload Page)</button>
+      </div>
+    `;
+  }
+}
+
+// Purchase & Yarn Modal Handlers
+async function openAddPurchaseModal(prefillLotNo = "", prefillCount = "", prefillMill = "", prefillRate = 0, prefillType = "COTTON") {
+  try {
+    const whs = await api.getTenantWarehouses().catch(() => []);
+    const whSelect = document.getElementById("pi-wh");
+    if (whSelect) {
+      whSelect.innerHTML = whs.map(w => `
+        <option value="${w.id}" ${w.storage_type === 'RAW_YARN_GODOWN' ? 'selected' : ''}>
+          ${w.name_kn} (${w.name_en})
+        </option>
+      `).join("") || '<option value="">ಕೇಂದ್ರ ನೂಲು ಉಗ್ರಾಣ (Central Yarn Godown)</option>';
+    }
+
+    const suppliers = await api.getSuppliers().catch(() => []);
+    const supSelect = document.getElementById("pi-supplier");
+    if (supSelect) {
+      if (suppliers.length === 0) {
+        const defSup = await api.createSupplier({
+          name: "ಕರ್ನಾಟಕ ಅಪೆಕ್ಸ್ ನೂಲು ಡಿಪೋ (NHDC / State Apex Yarn Depot)",
+          supplier_type: "YARN_MILL",
+          phone: "9845011223"
+        }).catch(() => null);
+        if (defSup) suppliers.push(defSup);
+      }
+      supSelect.innerHTML = suppliers.map(s => `
+        <option value="${s.id}">${s.name} ${s.gstin ? `(${s.gstin})` : ''}</option>
+      `).join("");
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("pi-date").value = today;
+    document.getElementById("pi-entry-no").value = `INW-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    document.getElementById("pi-inv-no").value = prefillLotNo ? `INV-${prefillLotNo}` : `INV-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    if (prefillLotNo) {
+      document.getElementById("pi-lot-no").value = prefillLotNo;
+      document.getElementById("pi-count-spec").value = prefillCount;
+      document.getElementById("pi-mill").value = prefillMill;
+      document.getElementById("pi-rate").value = prefillRate || "";
+      document.getElementById("pi-yarn-type").value = prefillType || "COTTON";
+    } else {
+      document.getElementById("pi-lot-no").value = `LOT-${new Date().getFullYear()}-C${Math.floor(10 + Math.random() * 90)}`;
+      document.getElementById("pi-count-spec").value = "2/60s Combed Cotton";
+      document.getElementById("pi-mill").value = "Gokak Mills Ltd";
+      document.getElementById("pi-rate").value = "380.00";
+      document.getElementById("pi-yarn-type").value = "COTTON";
+    }
+    document.getElementById("pi-qty").value = "50.00";
+    document.getElementById("pi-tax-rate").value = "5.0";
+
+    recalcPurchaseTotals();
+    showModal("modal-add-purchase");
+  } catch (err) {
+    alert("ಖರೀದಿ ಫಾರ್ಮ್ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ: " + err.message);
+  }
+}
+
+function recalcPurchaseTotals() {
+  const qty = parseFloat(document.getElementById("pi-qty")?.value) || 0;
+  const rate = parseFloat(document.getElementById("pi-rate")?.value) || 0;
+  const taxRate = parseFloat(document.getElementById("pi-tax-rate")?.value) || 5.0;
+
+  const subtotal = qty * rate;
+  const tax = subtotal * (taxRate / 100.0);
+  const total = subtotal + tax;
+
+  const dispSub = document.getElementById("pi-disp-sub");
+  const dispTax = document.getElementById("pi-disp-tax");
+  const dispTotal = document.getElementById("pi-disp-total");
+
+  if (dispSub) dispSub.textContent = formatCurrency(subtotal);
+  if (dispTax) dispTax.textContent = formatCurrency(tax);
+  if (dispTotal) dispTotal.textContent = formatCurrency(total);
+}
+
+async function handlePurchaseSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById("btn-save-purchase");
+  if (btn) btn.disabled = true;
+
+  try {
+    const supplierId = document.getElementById("pi-supplier").value;
+    const invoiceNo = document.getElementById("pi-inv-no").value;
+    const entryNo = document.getElementById("pi-entry-no").value;
+    const invoiceDate = document.getElementById("pi-date").value;
+    const warehouseId = document.getElementById("pi-wh").value || null;
+
+    const lotNo = document.getElementById("pi-lot-no").value;
+    const yarnType = document.getElementById("pi-yarn-type").value;
+    const countSpec = document.getElementById("pi-count-spec").value;
+    const millName = document.getElementById("pi-mill").value;
+    const shadeCode = document.getElementById("pi-shade").value;
+    const qty = parseFloat(document.getElementById("pi-qty").value);
+    const rate = parseFloat(document.getElementById("pi-rate").value);
+    const taxRate = parseFloat(document.getElementById("pi-tax-rate").value) || 5.0;
+
+    const payload = {
+      supplier_id: supplierId,
+      invoice_no: invoiceNo,
+      society_entry_no: entryNo,
+      invoice_date: invoiceDate,
+      receiving_warehouse_id: warehouseId,
+      auto_post: true,
+      items: [
+        {
+          lot_number: lotNo,
+          yarn_type: yarnType,
+          count_spec: countSpec,
+          mill_name: millName,
+          shade_code: shadeCode,
+          quantity: qty,
+          unit_cost: rate,
+          tax_rate: taxRate
+        }
+      ]
+    };
+
+    const res = await api.createPurchase(payload);
+    closeAllModals();
+    await loadInventorySection();
+    alert(`ಖರೀದಿ ಇನ್ವಾಯ್ಸ್ ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ!\nಜಮಾ ಸಂಖ್ಯೆ: ${res.society_entry_no || entryNo}\nದಾಸ್ತಾನು ಕೇಂದ್ರ ನೂಲು ಗೋದಾಮಿಗೆ ಸೇರ್ಪಡೆಗೊಂಡಿದೆ.`);
+  } catch (err) {
+    alert("ಖರೀದಿ ದಾಖಲಿಸಲು ವಿಫಲವಾಗಿದೆ: " + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function openAddYarnLotModal() {
+  document.getElementById("nyl-lot-no").value = `LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+  showModal("modal-add-yarn-lot");
+}
+
+async function handleYarnLotSubmit(e) {
+  e.preventDefault();
+  try {
+    const payload = {
+      lot_number: document.getElementById("nyl-lot-no").value,
+      yarn_type: document.getElementById("nyl-type").value,
+      count_spec: document.getElementById("nyl-count").value,
+      mill_name: document.getElementById("nyl-mill").value,
+      shade_code: document.getElementById("nyl-shade").value,
+      unit_cost_per_kg: parseFloat(document.getElementById("nyl-rate").value) || 0
+    };
+    await api.createYarnLot(payload);
+    closeAllModals();
+    await loadInventorySection();
+    alert("ನೂಲು ಲಾಟ್ ಯಶಸ್ವಿಯಾಗಿ ನೋಂದಾಯಿಸಲಾಗಿದೆ!");
+  } catch (err) {
+    alert("ನೂಲು ಲಾಟ್ ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ: " + err.message);
+  }
+}
+
+function openAddSupplierModal() {
+  showModal("modal-add-supplier");
+}
+
+async function handleSupplierSubmit(e) {
+  e.preventDefault();
+  try {
+    const payload = {
+      name: document.getElementById("ns-name").value,
+      supplier_type: document.getElementById("ns-type").value,
+      contact_person: document.getElementById("ns-contact").value,
+      phone: document.getElementById("ns-phone").value,
+      gstin: document.getElementById("ns-gstin").value,
+      address: document.getElementById("ns-address").value
+    };
+    const res = await api.createSupplier(payload);
+    closeAllModals();
+    const supSelect = document.getElementById("pi-supplier");
+    if (supSelect) {
+      const opt = document.createElement("option");
+      opt.value = res.id;
+      opt.textContent = res.name;
+      opt.selected = true;
+      supSelect.appendChild(opt);
+    }
+    alert("ಸರಬರಾಜುದಾರರನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಉಳಿಸಲಾಗಿದೆ!");
+  } catch (err) {
+    alert("ಸರಬರಾಜುದಾರರ ನೋಂದಣಿ ವಿಫಲವಾಗಿದೆ: " + err.message);
+  }
+}
+
+async function postExistingPurchase(invoiceId) {
+  try {
+    await api.postPurchase(invoiceId);
+    await loadInventorySection();
+    alert("ದಾಸ್ತಾನು ಯಶಸ್ವಿಯಾಗಿ ಗೋದಾಮಿಗೆ ಜಮಾ ಆಗಿದೆ!");
+  } catch (err) {
+    alert("ದಾಸ್ತಾನು ಜಮಾ ವಿಫಲವಾಗಿದೆ: " + err.message);
   }
 }
 

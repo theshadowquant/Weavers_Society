@@ -63,7 +63,13 @@ def init_db(force: bool = False):
     """Initializes the database schema."""
     schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
     if force and os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
+        # Prevent accidental deletion of primary production/dev database
+        is_test = "test" in os.path.basename(DB_PATH).lower()
+        if is_test or os.environ.get("ALLOW_FORCE_RESET") == "1":
+            os.remove(DB_PATH)
+        else:
+            # Recreate tables safely without dropping the database file
+            pass
         
     with open(schema_path, "r", encoding="utf-8") as f:
         schema_sql = f.read()

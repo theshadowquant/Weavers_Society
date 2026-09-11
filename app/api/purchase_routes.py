@@ -13,12 +13,22 @@ def api_create_supplier(
     ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     supplier_id = str(uuid.uuid4())
+    type_map = {
+        "YARN_MILL": "COOP_SPINNING_MILL",
+        "DYE_SUPPLIER": "DYES_CHEMICALS",
+        "ZARI_DEALER": "PRIVATE_MILL",
+        "GENERAL": "PRIVATE_MILL"
+    }
+    sup_type = type_map.get(data.supplier_type, data.supplier_type)
+    if sup_type not in ('NHDC_DEPOT', 'COOP_SPINNING_MILL', 'PRIVATE_MILL', 'DYES_CHEMICALS'):
+        sup_type = 'COOP_SPINNING_MILL'
+
     with get_db() as conn:
         conn.execute("""
-            INSERT INTO suppliers (id, tenant_id, name, contact_person, phone, gstin, address)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (supplier_id, ctx.tenant_id, data.name, data.contact_person, data.phone, data.gstin, data.address))
-        return {"id": supplier_id, "name": data.name}
+            INSERT INTO suppliers (id, tenant_id, name, supplier_type, contact_person, phone, gstin, address)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (supplier_id, ctx.tenant_id, data.name, sup_type, data.contact_person, data.phone, data.gstin, data.address))
+        return {"id": supplier_id, "name": data.name, "supplier_type": sup_type}
 
 @router.get("/suppliers")
 def api_list_suppliers(ctx: TenantContext = Depends(get_current_tenant_context)):

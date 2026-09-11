@@ -234,6 +234,215 @@
         </div>
       </form>
     </div>
+  <!-- Modal: Inward Raw Material / Purchase Invoice -->
+  <div class="modal-overlay" id="modal-add-purchase" style="display:none;">
+    <div class="modal-dialog" style="max-width:650px;">
+      <div class="modal-head">
+        <h3 style="font-size:1.05rem; color:var(--primary-navy); font-weight:700;">
+          📦 ಕಚ್ಚಾ ವಸ್ತು / ನೂಲು ಖರೀದಿ ಇನ್ವಾಯ್ಸ್ (Raw Material Purchase & Inward)
+        </h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handlePurchaseSubmit(event)">
+        <div class="modal-body">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:0.75rem; margin-bottom:1rem;">
+            <div style="font-weight:600; font-size:0.85rem; color:var(--primary-navy); margin-bottom:0.5rem;">
+              ೧. ಇನ್ವಾಯ್ಸ್ & ಸರಬರಾಜುದಾರರ ವಿವರಗಳು (Invoice & Supplier Details)
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">ಸರಬರಾಜುದಾರ / ಗಿರಣಿ (Supplier) *</label>
+                <div style="display:flex; gap:0.5rem;">
+                  <select id="pi-supplier" class="form-input" style="flex:1;" required></select>
+                  <button type="button" class="btn-inst btn-inst-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="openAddSupplierModal()">+ ಹೊಸತು</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಸರಬರಾಜುದಾರರ ಬಿಲ್ ಸಂಖ್ಯೆ (Bill No) *</label>
+                <input type="text" id="pi-inv-no" class="form-input" required placeholder="ಉದಾ: INV-2026-891" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಸಂಘದ ಜಮಾ ನಂ (Entry No)</label>
+                <input type="text" id="pi-entry-no" class="form-input" placeholder="ಆಟೋ ರಚನೆ (Auto-generated)" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಖರೀದಿ ದಿನಾಂಕ (Date) *</label>
+                <input type="date" id="pi-date" class="form-input" required />
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">ದಾಸ್ತಾನು ಸ್ವೀಕರಿಸುವ ಗೋದಾಮು (Receiving Godown)</label>
+                <select id="pi-wh" class="form-input"></select>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:6px; padding:0.75rem; margin-bottom:1rem;">
+            <div style="font-weight:600; font-size:0.85rem; color:#92400e; margin-bottom:0.5rem;">
+              ೨. ಕಚ್ಚಾ ವಸ್ತು / ನೂಲು ವಿವರಗಳು (Raw Material Specifications)
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">ನೂಲಿನ ವಿಧ (Yarn Type) *</label>
+                <select id="pi-yarn-type" class="form-input" required>
+                  <option value="COTTON">ಹತ್ತಿ ಹ್ಯಾಂಕ್ ನೂಲು (Cotton Hank)</option>
+                  <option value="MULBERRY_SILK">ಹಿಪ್ಪುನೇರಳೆ ರೇಷ್ಮೆ (Mulberry Silk)</option>
+                  <option value="POLYESTER">ಪಾಲಿಯೆಸ್ಟರ್ ಕೋನ್ (Polyester Cone)</option>
+                  <option value="ZARI">ಜರಿ / ಮೆಟ್ಟು (Zari Metallic)</option>
+                  <option value="TASSAR_SILK">ಟಸ್ಸಾರ್ ರೇಷ್ಮೆ (Tassar Silk)</option>
+                  <option value="WOOL">ಉಣ್ಣೆ ನೂಲು (Wool)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಲಾಟ್ ಸಂಖ್ಯೆ (Lot No) *</label>
+                <input type="text" id="pi-lot-no" class="form-input" required placeholder="ಉದಾ: LOT-2026-C40" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಕೌಂಟ್ ವಿವರ (Count Spec) *</label>
+                <input type="text" id="pi-count-spec" class="form-input" required placeholder="ಉದಾ: 2/60s Combed, 2/40s, 80s" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಸ್ಪಿನ್ನಿಂಗ್ ಗಿರಣಿ / ಮೂಲ (Mill Name) *</label>
+                <input type="text" id="pi-mill" class="form-input" required placeholder="ಉದಾ: Gokak Mills / Vardhman / NHDC" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ಬಣ್ಣ / ಶೇಡ್ ಕೋಡ್ (Shade)</label>
+                <input type="text" id="pi-shade" class="form-input" value="Natural/Bleached White" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ತೂಕ (Kgs) *</label>
+                <input type="number" step="0.01" id="pi-qty" class="form-input" required placeholder="0.00" oninput="recalcPurchaseTotals()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ದರ / ಪ್ರತಿ ಕೆ.ಜಿ (Rate ₹) *</label>
+                <input type="number" step="0.01" id="pi-rate" class="form-input" required placeholder="0.00" oninput="recalcPurchaseTotals()" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">GST ತೆರಿಗೆ ದರ (%)</label>
+                <input type="number" step="0.5" id="pi-tax-rate" class="form-input" value="5.0" oninput="recalcPurchaseTotals()" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Financial Totals -->
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f5f9; padding:0.75rem 1rem; border-radius:6px;">
+            <div>
+              <span style="font-size:0.8rem; color:#64748b;">ಮೂಲ ಬೆಲೆ: </span><strong id="pi-disp-sub">₹0.00</strong>
+              <span style="margin:0 0.5rem; color:#cbd5e1;">|</span>
+              <span style="font-size:0.8rem; color:#64748b;">GST (5%): </span><strong id="pi-disp-tax">₹0.00</strong>
+            </div>
+            <div>
+              <span style="font-size:0.85rem; color:var(--primary-navy); font-weight:600;">ಒಟ್ಟು ಮೊತ್ತ (Total Payable): </span>
+              <span id="pi-disp-total" style="font-size:1.15rem; font-weight:800; color:var(--accent-emerald);">₹0.00</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary" id="btn-save-purchase">
+            ದಾಸ್ತಾನು ಜಮಾ ಮಾಡಿ ಮತ್ತು ಉಳಿಸಿ (Save & Inward to Godown ✓)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Standalone Yarn Lot -->
+  <div class="modal-overlay" id="modal-add-yarn-lot" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 style="font-size:1rem; color:var(--primary-navy);">🧶 ಹೊಸ ನೂಲು ಲಾಟ್ ನೋಂದಣಿ (Register Yarn Lot)</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleYarnLotSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">ಲಾಟ್ ಸಂಖ್ಯೆ (Lot Number) *</label>
+              <input type="text" id="nyl-lot-no" class="form-input" required placeholder="ಉದಾ: LOT-2026-088" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ನೂಲಿನ ವಿಧ (Yarn Type) *</label>
+              <select id="nyl-type" class="form-input" required>
+                <option value="COTTON" selected>ಹತ್ತಿ ನೂಲು (Cotton Hank)</option>
+                <option value="MULBERRY_SILK">ಹಿಪ್ಪುನೇರಳೆ ರೇಷ್ಮೆ (Mulberry Silk)</option>
+                <option value="POLYESTER">ಪಾಲಿಯೆಸ್ಟರ್ ಕೋನ್ (Polyester Cone)</option>
+                <option value="ZARI">ಜರಿ (Zari/Mettu)</option>
+                <option value="WOOL">ಉಣ್ಣೆ (Wool)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಕೌಂಟ್ ವಿವರ (Count Spec) *</label>
+              <input type="text" id="nyl-count" class="form-input" required placeholder="ಉದಾ: 2/60s Combed, 2/40s" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಗಿರಣಿ / ಮೂಲ (Spinning Mill) *</label>
+              <input type="text" id="nyl-mill" class="form-input" required placeholder="ಉದಾ: Gokak Mills" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಶೇಡ್ / ಬಣ್ಣ (Shade Code)</label>
+              <input type="text" id="nyl-shade" class="form-input" value="Natural/Bleached White" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಅಂದಾಜು ಬೆಲೆ/Kg (Unit Cost ₹) *</label>
+              <input type="number" step="0.01" id="nyl-rate" class="form-input" required placeholder="0.00" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary">ನೂಲು ಲಾಟ್ ಉಳಿಸಿ ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Supplier -->
+  <div class="modal-overlay" id="modal-add-supplier" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <h3 style="font-size:1rem; color:var(--primary-navy);">🏢 ಹೊಸ ಸರಬರಾಜುದಾರ / ಗಿರಣಿ (Add Supplier / Mill)</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleSupplierSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label">ಸರಬರಾಜುದಾರರ ಹೆಸರು (Supplier/Mill Name) *</label>
+              <input type="text" id="ns-name" class="form-input" required placeholder="ಉದಾ: Gokak Textiles Ltd / NHDC Depot" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಸರಬರಾಜು ವಿಧ (Supplier Type)</label>
+              <select id="ns-type" class="form-input">
+                <option value="YARN_MILL" selected>ನೂಲು ಗಿರಣಿ (Yarn Spinning Mill)</option>
+                <option value="DYE_SUPPLIER">ಬಣ್ಣ / ರಾಸಾಯನಿಕ (Dyes & Chemicals)</option>
+                <option value="ZARI_DEALER">ಜರಿ ವ್ಯಾಪಾರಿ (Zari Merchant)</option>
+                <option value="GENERAL">ಇತರೆ ಸರಬರಾಜುದಾರ (General)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಸಂಪರ್ಕ ವ್ಯಕ್ತಿ (Contact Person)</label>
+              <input type="text" id="ns-contact" class="form-input" placeholder="ಹೆಸರು" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ದೂರವಾಣಿ ಸಂಖ್ಯೆ (Phone)</label>
+              <input type="tel" id="ns-phone" class="form-input" placeholder="98450..." />
+            </div>
+            <div class="form-group">
+              <label class="form-label">GSTIN ಸಂಖ್ಯೆ</label>
+              <input type="text" id="ns-gstin" class="form-input" placeholder="29AAAAA0000A1Z5" />
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label class="form-label">ವಿಳಾಸ (Address)</label>
+              <input type="text" id="ns-address" class="form-input" placeholder="ವಿಳಾಸ ಮತ್ತು ಊರು" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary">ಸರಬರಾಜುದಾರರನ್ನು ಉಳಿಸಿ ✓</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Scripts -->

@@ -164,6 +164,16 @@ class ProductCreate(BaseModel):
     wholesale_rate: float = 0.0
     tax_rate: float = 5.0
 
+# --- YARN LOTS ---
+class YarnLotCreate(BaseModel):
+    lot_number: str
+    yarn_type: str = "COTTON"
+    count_spec: str
+    shade_code: Optional[str] = "Natural/White"
+    mill_name: str
+    hsn_code: str = "5205"
+    unit_cost_per_kg: float
+
 # --- PURCHASES & SUPPLIERS ---
 class SupplierCreate(BaseModel):
     name: str
@@ -179,6 +189,12 @@ class PurchaseItemCreate(BaseModel):
     quantity: float
     unit_cost: float
     tax_rate: float = 5.0
+    # Inline yarn lot creation support
+    lot_number: Optional[str] = None
+    yarn_type: Optional[str] = None
+    count_spec: Optional[str] = None
+    mill_name: Optional[str] = None
+    shade_code: Optional[str] = None
 
 class PurchaseInvoiceCreate(BaseModel):
     supplier_id: str
@@ -189,6 +205,7 @@ class PurchaseInvoiceCreate(BaseModel):
     receiving_warehouse_id: Optional[str] = None
     warehouse_id: Optional[str] = None
     notes: Optional[str] = None
+    auto_post: bool = True
     items: List[PurchaseItemCreate] = []
 
 # --- UNIFIED SALES & REBATES ---
