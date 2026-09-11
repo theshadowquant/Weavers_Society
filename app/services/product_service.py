@@ -15,13 +15,13 @@ def create_product(tenant_id: str, data: ProductCreate) -> Dict[str, Any]:
         conn.execute("""
             INSERT INTO products (
                 id, tenant_id, sku, name_en, name_kn, category,
-                count_spec, uom, hsn_code, purchase_cost, retail_rate,
-                wholesale_rate, tax_rate, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                gi_tag_certified, warp_count_spec, weft_count_spec, uom, hsn_code,
+                standard_manufacturing_cost, retail_rate, wholesale_rate, tax_rate, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
         """, (
             product_id, tenant_id, data.sku, data.name_en, data.name_kn, data.category,
-            data.count_spec, data.uom, data.hsn_code, data.purchase_cost, data.retail_rate,
-            data.wholesale_rate, data.tax_rate
+            data.gi_tag_certified, data.warp_count_spec, data.weft_count_spec, data.uom, data.hsn_code,
+            data.standard_manufacturing_cost, data.retail_rate, data.wholesale_rate, data.tax_rate
         ))
         return {
             "id": product_id,
@@ -30,6 +30,7 @@ def create_product(tenant_id: str, data: ProductCreate) -> Dict[str, Any]:
             "name_en": data.name_en,
             "name_kn": data.name_kn,
             "retail_rate": data.retail_rate,
+            "wholesale_rate": data.wholesale_rate,
             "current_stock": 0.0
         }
 

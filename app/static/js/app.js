@@ -6,6 +6,9 @@
 const state = {
   currentSection: "operations",
   currentTenant: null,
+  warehouses: [],
+  activeShowroomWarehouseId: null,
+  activeGodownWarehouseId: null,
   cart: [],
   applyRebate: true,
   paymentMode: "CASH",
@@ -85,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (api.token && api.tenantInfo) {
       state.currentTenant = api.tenantInfo;
+      await refreshTenantStorageNodes();
       updateTenantUI();
       showAppShell();
       navigateTo("operations");
@@ -113,11 +117,46 @@ function showAppShell() {
   if (a) a.style.display = "block";
 }
 
+async function refreshTenantStorageNodes() {
+  if (!state.currentTenant) return;
+  try {
+    const whs = await api.getTenantWarehouses();
+    state.warehouses = whs || [];
+    const showroom = state.warehouses.find(w => w.storage_type === 'FINISHED_SHOWROOM');
+    state.activeShowroomWarehouseId = showroom ? showroom.id : null;
+    const godown = state.warehouses.find(w => w.storage_type === 'RAW_YARN_GODOWN');
+    state.activeGodownWarehouseId = godown ? godown.id : null;
+  } catch (err) {
+    console.warn("Could not load tenant warehouses:", err);
+  }
+}
+
 function updateTenantUI() {
   const badge = document.getElementById("tenant-name-badge");
   if (badge && state.currentTenant) {
     const isKn = currentLanguage === "kn";
     badge.innerText = isKn ? state.currentTenant.tenant_name_kn : state.currentTenant.tenant_name_en;
+  }
+
+  const userBadge = document.getElementById("user-profile-badge");
+  if (userBadge && state.currentTenant) {
+    userBadge.innerText = `👤 ${state.currentTenant.user_full_name || 'User'} (${state.currentTenant.role || 'Member'})`;
+  }
+
+  // Handle Multi-Society Switcher Dropdown
+  const switchSelect = document.getElementById("society-switch-select");
+  if (switchSelect) {
+    const authTenants = state.currentTenant?.authorized_tenants || [];
+    if (authTenants.length > 1) {
+      switchSelect.style.display = "inline-block";
+      switchSelect.innerHTML = authTenants.map(t => `
+        <option value="${t.tenant_id}" ${t.tenant_id === state.currentTenant.tenant_id ? 'selected' : ''}>
+          🏛️ ${currentLanguage === 'kn' ? t.tenant_name_kn : t.tenant_name_en}
+        </option>
+      `).join("");
+    } else {
+      switchSelect.style.display = "none";
+    }
   }
 }
 
@@ -126,21 +165,73 @@ window.onLanguageChanged = () => {
   renderCurrentSection();
 };
 
-async function quickAccessTenant(slug) {
+function openLoginModal() {
+  const modal = document.getElementById("modal-login");
+  const errBox = document.getElementById("login-error-msg");
+  if (errBox) errBox.style.display = "none";
+  const choiceGrp = document.getElementById("login-society-choice-group");
+  if (choiceGrp) choiceGrp.style.display = "none";
+  if (modal) modal.style.display = "flex";
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const ident = document.getElementById("login-identifier")?.value?.trim();
+  const pwd = document.getElementById("login-password")?.value;
+  const errBox = document.getElementById("login-error-msg");
+  const btn = document.getElementById("btn-login-submit");
+
+  if (!ident || !pwd) {
+    if (errBox) {
+      errBox.innerText = "ದಯವಿಟ್ಟು ಮೊಬೈಲ್/ಇಮೇಲ್ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.";
+      errBox.style.display = "block";
+    }
+    return;
+  }
+
+  if (btn) btn.innerText = "ಪ್ರವೇಶಿಸಲಾಗುತ್ತಿದೆ...";
+
   try {
-    const isGadag = slug === "gadag-weavers-coop";
-    const identifier = isGadag ? "admin@gadag.coop" : "secretary@ilkal.coop";
-    const data = await api.login(identifier, "admin123", slug);
+    const data = await api.login(ident, pwd);
     state.currentTenant = data;
     state.cart = [];
+    await refreshTenantStorageNodes();
     updateTenantUI();
-    showAppShell();
     closeAllModals();
+    showAppShell();
     navigateTo("operations");
   } catch (err) {
-    alert("ಸಂಘದ ಪ್ರವೇಶ ವಿಫಲವಾಗಿದೆ: " + err.message);
+    if (errBox) {
+      errBox.innerText = "ಲಾಗಿನ್ ವಿಫಲವಾಗಿದೆ: " + err.message;
+      errBox.style.display = "block";
+    }
+  } finally {
+    if (btn) btn.innerText = "ಪ್ರವೇಶಿಸಿ (Login) ✓";
   }
 }
+
+async function handleTenantSwitch(targetTenantId) {
+  if (!targetTenantId || targetTenantId === state.currentTenant?.tenant_id) return;
+  try {
+    const data = await api.switchTenant(targetTenantId);
+    state.currentTenant = data;
+    state.cart = [];
+    await refreshTenantStorageNodes();
+    updateTenantUI();
+    renderCurrentSection();
+  } catch (err) {
+    alert("ಸಂಘ ಬದಲಾವಣೆ ವಿಫಲವಾಗಿದೆ: " + err.message);
+  }
+}
+
+function handleLogout() {
+  api.clearSession();
+  state.currentTenant = null;
+  state.warehouses = [];
+  state.cart = [];
+  showLandingPage();
+}
+
 
 // Navigation Controller
 function navigateTo(sectionName) {
@@ -766,9 +857,15 @@ async function submitSaleTransaction() {
   const custName = document.getElementById("sale-cust-name")?.value || "Retail Walk-in (ಚಿಲ್ಲರೆ ಗ್ರಾಹಕರು)";
   const custPhone = document.getElementById("sale-cust-phone")?.value || "9999999999";
 
+  const warehouseId = state.activeShowroomWarehouseId || state.warehouses.find(w => w.storage_type === 'FINISHED_SHOWROOM')?.id;
+  if (!warehouseId) {
+    alert("ಮಳಿಗೆಯ ದಾಸ್ತಾನು ಶೇಖರಣಾ ಹಂತ ಲಭ್ಯವಿಲ್ಲ! (Showroom storage node not resolved)");
+    return;
+  }
+
   const payload = {
     sale_channel: "RETAIL_SHOWROOM",
-    warehouse_id: "wh1-store-1111-1111-111111111111",
+    warehouse_id: warehouseId,
     customer_name: custName,
     customer_phone: custPhone,
     apply_govt_rebate: state.applyRebate,
@@ -1297,18 +1394,18 @@ async function submitFinalizeSociety() {
     legal_name_kn: nameKn || "ಕರ್ನಾಟಕ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ ನಿಯಮಿತ",
     registration_number: d.reg_no || (`DR/KCS/${randSuffix}/${new Date().getFullYear()}`),
     registration_date: d.reg_date || "1985-04-12",
-    society_type: "PRIMARY_WEAVERS_COOP",
-    district: d.district || "Gadag",
-    taluk: d.taluk || "Gadag",
-    hobli_village: d.village || "Betageri",
-    pincode: d.pin || "582101",
-    registered_office_address: d.address || "Main Weavers Bhavan, Station Road",
-    directorate_society_code: d.dept_code || `DTH/GDG/${randSuffix}`,
+    society_type: d.society_type || "PRIMARY_WEAVERS_COOP",
+    district: d.district || "Karnataka",
+    taluk: d.taluk || "",
+    hobli_village: d.village || "",
+    pincode: d.pin || "560001",
+    registered_office_address: d.address || "",
+    directorate_society_code: d.dept_code || null,
     pan: d.pan || null,
     gstin: d.gstin || null,
     bank_account_no: d.bank_acc || null,
-    members_count: d.members_count || 85,
-    active_looms_count: d.looms_count || 64,
+    members_count: d.members_count || 50,
+    active_looms_count: d.looms_count || 40,
     preferred_language: d.lang || currentLanguage
   };
 
@@ -1321,6 +1418,7 @@ async function submitFinalizeSociety() {
       const authData = await api.login(payload.primary_phone, payload.admin_password, res.slug);
       state.currentTenant = authData;
       state.cart = [];
+      await refreshTenantStorageNodes();
       updateTenantUI();
       showAppShell();
       closeAllModals();

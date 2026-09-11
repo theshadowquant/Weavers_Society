@@ -9,7 +9,7 @@ router = APIRouter(prefix="/products", tags=["Products Master"])
 @router.post("")
 def api_create_product(
     data: ProductCreate,
-    ctx: TenantContext = Depends(require_roles(["SOCIETY_ADMIN", "ACCOUNTANT", "PRODUCTION_SUPERVISOR"]))
+    ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     return create_product(ctx.tenant_id, data)
 

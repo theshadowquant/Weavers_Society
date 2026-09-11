@@ -58,13 +58,30 @@ class ApiClient {
   }
 
   // Auth
-  async login(identifier, password, tenantSlug = null) {
+  async login(identifier, password, tenantSlug = null, tenantId = null) {
     const data = await this.request("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ identifier, password, tenant_slug: tenantSlug })
+      body: JSON.stringify({ identifier, password, tenant_slug: tenantSlug, tenant_id: tenantId })
     });
     this.setSession(data.access_token, data);
     return data;
+  }
+
+  async switchTenant(targetTenantId) {
+    const data = await this.request("/auth/switch-tenant", {
+      method: "POST",
+      body: JSON.stringify({ target_tenant_id: targetTenantId })
+    });
+    this.setSession(data.access_token, data);
+    return data;
+  }
+
+  async getMe() {
+    return await this.request("/auth/me");
+  }
+
+  async getTenantWarehouses() {
+    return await this.request("/inventory/warehouses");
   }
 
   // Operational Command Center

@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.database.session import init_db, DB_PATH
-from app.database.seed import seed_database
 from app.api.auth_routes import router as auth_router
 from app.api.onboarding_routes import router as onboarding_router
 from app.api.dashboard_routes import router as dashboard_router
@@ -15,13 +14,15 @@ from app.api.production_routes import router as production_router
 from app.api.inventory_routes import router as inventory_router
 from app.api.sales_routes import router as sales_router
 from app.api.report_routes import router as report_router
+from app.api.product_routes import router as product_router
+from app.api.purchase_routes import router as purchase_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Auto-initialize database on startup if database doesn't exist
+    # Auto-initialize database schema on startup if database doesn't exist
     if not os.path.exists(DB_PATH):
-        print(f"Initializing first-principles handloom database at {DB_PATH}...")
-        seed_database()
+        print(f"Initializing clean handloom database schema at {DB_PATH}...")
+        init_db()
     yield
 
 app = FastAPI(
@@ -48,6 +49,8 @@ app.include_router(production_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(sales_router, prefix="/api/v1")
 app.include_router(report_router, prefix="/api/v1")
+app.include_router(product_router, prefix="/api/v1")
+app.include_router(purchase_router, prefix="/api/v1")
 
 # Static Assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")

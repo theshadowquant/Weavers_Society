@@ -9,7 +9,7 @@ router = APIRouter(prefix="/weavers", tags=["Weaver Members"])
 @router.post("")
 def api_create_weaver(
     data: WeaverCreate,
-    ctx: TenantContext = Depends(require_roles(["SOCIETY_ADMIN", "ACCOUNTANT", "PRODUCTION_SUPERVISOR"]))
+    ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     return create_weaver(ctx.tenant_id, data)
 

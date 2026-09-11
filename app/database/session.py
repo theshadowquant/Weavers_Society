@@ -17,14 +17,16 @@ def _ensure_schema(conn: sqlite3.Connection):
         schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
         with open(schema_path, "r", encoding="utf-8") as f:
             conn.executescript(f.read())
-        try:
-            from app.database.seed import seed_database
-            # Seeds initial demo societies
-            cursor.execute("SELECT COUNT(*) as c FROM tenants")
-            if cursor.fetchone()["c"] == 0:
-                seed_database()
-        except Exception as e:
-            print("Auto-seed info:", e)
+        # Auto-seeding is strictly disabled in production.
+        # It may only be explicitly triggered in development when ALLOW_DEMO_SEED is set.
+        if os.environ.get("ALLOW_DEMO_SEED") == "1":
+            try:
+                from app.database.seed import seed_database
+                cursor.execute("SELECT COUNT(*) as c FROM tenants")
+                if cursor.fetchone()["c"] == 0:
+                    seed_database()
+            except Exception as e:
+                print("Auto-seed info:", e)
 
 def get_db_connection() -> sqlite3.Connection:
     """Creates a new SQLite database connection with row factory and foreign keys enabled."""

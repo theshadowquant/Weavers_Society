@@ -130,3 +130,18 @@ def get_stock_movement_journal(
         params.extend([limit, offset])
         cursor.execute(query, params)
         return [dict(r) for r in cursor.fetchall()]
+
+def get_tenant_warehouses(tenant_id: str) -> List[Dict[str, Any]]:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, tenant_id, code, name_en, name_kn, storage_type, address
+            FROM warehouses
+            WHERE tenant_id = ? AND is_active = 1
+            ORDER BY code ASC
+        """, (tenant_id,))
+        return [dict(r) for r in cursor.fetchall()]
+
+# Alias for backward compatibility
+append_stock_movement = append_ledger_entry
+

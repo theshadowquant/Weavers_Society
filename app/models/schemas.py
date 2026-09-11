@@ -40,15 +40,28 @@ class OnboardingFinalizeRequest(BaseModel):
     # Step 6: Preferences
     preferred_language: str = "kn"
 
+class TenantMembership(BaseModel):
+    tenant_id: str
+    tenant_slug: str
+    tenant_name_en: str
+    tenant_name_kn: str
+    role: str
+    district: Optional[str] = None
+
 class LoginRequest(BaseModel):
     identifier: str
     password: str
     tenant_slug: Optional[str] = None
+    tenant_id: Optional[str] = None
+
+class SwitchTenantRequest(BaseModel):
+    target_tenant_id: str
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_id: str
+    user_full_name: str
     tenant_id: str
     tenant_slug: str
     tenant_name_en: str
@@ -56,6 +69,7 @@ class TokenResponse(BaseModel):
     district: str
     role: str
     preferred_language: str
+    authorized_tenants: List[TenantMembership] = []
 
 # --- WEAVERS ---
 class WeaverCreate(BaseModel):
@@ -128,6 +142,33 @@ class ProductCreate(BaseModel):
     wholesale_rate: float = 0.0
     tax_rate: float = 5.0
 
+# --- PURCHASES & SUPPLIERS ---
+class SupplierCreate(BaseModel):
+    name: str
+    supplier_type: str = "YARN_MILL"
+    contact_person: Optional[str] = None
+    phone: Optional[str] = None
+    gstin: Optional[str] = None
+    address: Optional[str] = None
+
+class PurchaseItemCreate(BaseModel):
+    yarn_lot_id: Optional[str] = None
+    product_id: Optional[str] = None
+    quantity: float
+    unit_cost: float
+    tax_rate: float = 5.0
+
+class PurchaseInvoiceCreate(BaseModel):
+    supplier_id: str
+    invoice_no: str
+    society_entry_no: Optional[str] = None
+    society_ref_no: Optional[str] = None
+    invoice_date: str
+    receiving_warehouse_id: Optional[str] = None
+    warehouse_id: Optional[str] = None
+    notes: Optional[str] = None
+    items: List[PurchaseItemCreate] = []
+
 # --- UNIFIED SALES & REBATES ---
 class SalesItemCreate(BaseModel):
     product_id: str
@@ -147,3 +188,4 @@ class SalesTransactionCreate(BaseModel):
     payment_mode: str = "CASH" # CASH, UPI_QR, CARD, CREDIT_ACCOUNT
     payment_reference: Optional[str] = None
     items: List[SalesItemCreate]
+

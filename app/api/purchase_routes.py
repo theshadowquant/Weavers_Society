@@ -10,7 +10,7 @@ router = APIRouter(prefix="/purchases", tags=["Purchasing & Suppliers"])
 @router.post("/suppliers")
 def api_create_supplier(
     data: SupplierCreate,
-    ctx: TenantContext = Depends(require_roles(["SOCIETY_ADMIN", "ACCOUNTANT"]))
+    ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     supplier_id = str(uuid.uuid4())
     with get_db() as conn:
@@ -30,14 +30,14 @@ def api_list_suppliers(ctx: TenantContext = Depends(get_current_tenant_context))
 @router.post("/invoices")
 def api_create_purchase(
     data: PurchaseInvoiceCreate,
-    ctx: TenantContext = Depends(require_roles(["SOCIETY_ADMIN", "ACCOUNTANT"]))
+    ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     return create_purchase_invoice(ctx.tenant_id, ctx.user_id, data)
 
 @router.post("/invoices/{invoice_id}/post")
 def api_post_purchase(
     invoice_id: str,
-    ctx: TenantContext = Depends(require_roles(["SOCIETY_ADMIN", "ACCOUNTANT"]))
+    ctx: TenantContext = Depends(require_roles(["SECRETARY", "MANAGING_DIRECTOR", "ACCOUNTANT", "GODOWN_KEEPER"]))
 ):
     return post_purchase_invoice(ctx.tenant_id, ctx.user_id, invoice_id)
 

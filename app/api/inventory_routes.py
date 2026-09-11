@@ -1,10 +1,14 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
 from app.core.tenant_context import TenantContext, get_current_tenant_context
-from app.services.inventory_service import get_inventory_status_by_state, get_stock_movement_journal
+from app.services.inventory_service import get_inventory_status_by_state, get_stock_movement_journal, get_tenant_warehouses
 from app.services.report_service import get_stock_valuation_schedule
 
 router = APIRouter(prefix="/inventory", tags=["Multi-State Inventory Ledger"])
+
+@router.get("/warehouses")
+def api_get_warehouses(ctx: TenantContext = Depends(get_current_tenant_context)):
+    return get_tenant_warehouses(ctx.tenant_id)
 
 @router.get("/status")
 def api_get_inventory_status(ctx: TenantContext = Depends(get_current_tenant_context)):
@@ -22,3 +26,4 @@ def api_get_journal(
 @router.get("/valuation")
 def api_get_valuation(ctx: TenantContext = Depends(get_current_tenant_context)):
     return get_stock_valuation_schedule(ctx.tenant_id)
+

@@ -11,22 +11,29 @@ def create_purchase_invoice(tenant_id: str, user_id: str, data: PurchaseInvoiceC
     subtotal = sum(item.quantity * item.unit_cost for item in data.items)
     tax_amount = sum((item.quantity * item.unit_cost * item.tax_rate / 100.0) for item in data.items)
     total_amount = subtotal + tax_amount
+    entry_no = data.society_entry_no or data.society_ref_no or f"PI-{uuid.uuid4().hex[:6].upper()}"
+    wh_id = data.receiving_warehouse_id or data.warehouse_id
     
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM purchase_invoices WHERE tenant_id = ? AND society_ref_no = ?", (tenant_id, data.society_ref_no))
+        if not wh_id:
+            cursor.execute("SELECT id FROM warehouses WHERE tenant_id = ? AND storage_type = 'RAW_YARN_GODOWN' LIMIT 1", (tenant_id,))
+            wh_row = cursor.fetchone()
+            wh_id = wh_row["id"] if wh_row else None
+            
+        cursor.execute("SELECT id FROM purchase_invoices WHERE tenant_id = ? AND society_entry_no = ?", (tenant_id, entry_no))
         if cursor.fetchone():
-            raise HTTPException(status_code=400, detail=f"Purchase reference '{data.society_ref_no}' already exists.")
+            raise HTTPException(status_code=400, detail=f"Purchase entry '{entry_no}' already exists.")
             
         conn.execute("""
             INSERT INTO purchase_invoices (
-                id, tenant_id, supplier_id, invoice_no, society_ref_no,
-                invoice_date, warehouse_id, subtotal, tax_amount, total_amount,
+                id, tenant_id, supplier_id, invoice_no, society_entry_no,
+                invoice_date, receiving_warehouse_id, subtotal, tax_amount, total_amount,
                 payment_status, status, notes
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'UNPAID', 'DRAFT', ?)
         """, (
-            invoice_id, tenant_id, data.supplier_id, data.invoice_no, data.society_ref_no,
-            data.invoice_date, data.warehouse_id, subtotal, tax_amount, total_amount, data.notes
+            invoice_id, tenant_id, data.supplier_id, data.invoice_no, entry_no,
+            data.invoice_date, wh_id, subtotal, tax_amount, total_amount, data.notes
         ))
         
         for item in data.items:
@@ -36,17 +43,17 @@ def create_purchase_invoice(tenant_id: str, user_id: str, data: PurchaseInvoiceC
             item_tot = item_sub + item_tax
             conn.execute("""
                 INSERT INTO purchase_items (
-                    id, tenant_id, purchase_invoice_id, product_id,
-                    quantity, unit_cost, tax_rate, tax_amount, line_total
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    id, tenant_id, purchase_invoice_id, yarn_lot_id, product_id,
+                    quantity_kgs, rate_per_unit, tax_rate, tax_amount, line_total
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                item_id, tenant_id, invoice_id, item.product_id,
+                item_id, tenant_id, invoice_id, item.yarn_lot_id, item.product_id,
                 item.quantity, item.unit_cost, item.tax_rate, item_tax, item_tot
             ))
             
         return {
             "invoice_id": invoice_id,
-            "society_ref_no": data.society_ref_no,
+            "society_entry_no": entry_no,
             "total_amount": round(total_amount, 2),
             "status": "DRAFT"
         }
@@ -75,15 +82,16 @@ def post_purchase_invoice(tenant_id: str, user_id: str, invoice_id: str) -> Dict
             append_stock_movement(
                 conn=conn,
                 tenant_id=tenant_id,
-                product_id=item["product_id"],
-                warehouse_id=inv["warehouse_id"],
-                movement_type="PURCHASE_RECEIPT",
-                quantity_delta=float(item["quantity"]), # Inward is positive
-                unit_cost=float(item["unit_cost"]),
+                warehouse_id=inv["receiving_warehouse_id"],
+                movement_type="PURCHASE_YARN_INWARD",
+                quantity_delta=float(item["quantity_kgs"]), # Inward is positive
+                unit_cost=float(item["rate_per_unit"]),
                 reference_type="PURCHASE_INVOICE",
                 reference_id=invoice_id,
                 performed_by=user_id,
-                notes=f"Supplier Inward: {inv['invoice_no']} Ref: {inv['society_ref_no']}"
+                product_id=item["product_id"],
+                yarn_lot_id=item["yarn_lot_id"],
+                notes=f"Supplier Inward: {inv['invoice_no']} Entry: {inv['society_entry_no']}"
             )
             
         conn.execute("""
@@ -115,8 +123,9 @@ def list_purchases(tenant_id: str) -> List[Dict[str, Any]]:
             SELECT pi.*, s.name as supplier_name, w.name_en as warehouse_name
             FROM purchase_invoices pi
             JOIN suppliers s ON s.id = pi.supplier_id
-            JOIN warehouses w ON w.id = pi.warehouse_id
+            JOIN warehouses w ON w.id = pi.receiving_warehouse_id
             WHERE pi.tenant_id = ?
             ORDER BY pi.created_at DESC
         """, (tenant_id,))
         return [dict(r) for r in cursor.fetchall()]
+

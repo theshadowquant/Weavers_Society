@@ -32,24 +32,13 @@
         ಪ್ರತಿಯೊಂದು ಸಹಕಾರ ಸಂಘವು ತನ್ನದೇ ಆದ ಡಿಜಿಟಲ್ ಹೆಡ್‌ಕ್ವಾರ್ಟರ್ಸ್ ಸ್ಥಾಪಿಸಿ ನೇಕಾರರು, ನೂಲು ಹಂಚಿಕೆ, ಮಗ್ಗದ ಕೂಲಿ, ಮಾರಾಟ ಮತ್ತು ಸರ್ಕಾರಿ ರಿಯಾಯಿತಿಗಳನ್ನು ಸುಲಭವಾಗಿ ನಿರ್ವಹಿಸಬಹುದು.
       </p>
 
-      <div class="landing-hero-actions">
+      <div class="landing-hero-actions" style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
         <button class="btn-inst btn-inst-primary" style="padding:0.85rem 1.5rem; font-size:1rem;" onclick="startOnboardingWizard()" data-i18n="onb.start_btn">
-          ಹೊಸ ಸಂಘದ ನೋಂದಣಿ ಪ್ರಾರಂಭಿಸಿ →
+          + ಹೊಸ ಸಂಘದ ನೋಂದಣಿ (Register Society) →
         </button>
-      </div>
-
-      <div style="margin-top:2.5rem; border-top:1px solid var(--border-card); padding-top:1.5rem;">
-        <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.04em;">
-          ಪ್ರಾಯೋಗಿಕ ಸಂಘಗಳ ಡಿಜಿಟಲ್ ಪ್ರವೇಶ (Pilot Society Demonstrations):
-        </div>
-        <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
-          <button class="btn-inst btn-inst-secondary" style="padding:0.6rem 1.1rem;" onclick="quickAccessTenant('gadag-weavers-coop')">
-            🏛️ ಗದಗ ಹತ್ತಿ ಕೈಮಗ್ಗ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ
-          </button>
-          <button class="btn-inst btn-inst-secondary" style="padding:0.6rem 1.1rem;" onclick="quickAccessTenant('ilkal-sari-coop')">
-            🏛️ ಇಳಕಲ್ ಸಾಂಪ್ರದಾಯಿಕ ಸೀರೆ ನೇಕಾರರ ಸಹಕಾರ ಸಂಘ
-          </button>
-        </div>
+        <button class="btn-inst btn-inst-secondary" style="padding:0.85rem 1.5rem; font-size:1rem;" onclick="openLoginModal()" data-i18n="onb.login_btn">
+          🔐 ಸಂಘದ ಲಾಗಿನ್ (Society Login)
+        </button>
       </div>
     </div>
   </section>
@@ -75,16 +64,19 @@
           <span id="tenant-name-badge" style="font-weight:700;">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</span>
         </div>
 
-        <!-- Quick Switch Societies to observe multi-tenant isolation -->
-        <button class="btn-switch-tenant" onclick="quickAccessTenant('gadag-weavers-coop')" title="ಗದಗ ಸಂಘ">
-          🏛️ ಗದಗ (Gadag)
-        </button>
-        <button class="btn-switch-tenant" onclick="quickAccessTenant('ilkal-sari-coop')" title="ಇಳಕಲ್ ಸಂಘ">
-          🏛️ ಇಳಕಲ್ (Ilkal)
-        </button>
+        <!-- Authenticated User Profile & Role -->
+        <span id="user-profile-badge" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;"></span>
+
+        <!-- Dynamic Society Switcher (Only populated if user belongs to 2+ societies) -->
+        <select id="society-switch-select" class="form-input" style="display:none; padding:0.35rem 0.6rem; font-size:0.75rem; max-width:200px;" onchange="handleTenantSwitch(this.value)">
+        </select>
 
         <button class="btn-lang" id="lang-toggle-btn" onclick="toggleLanguage()">
           English
+        </button>
+
+        <button class="btn-inst btn-inst-secondary" style="padding:0.35rem 0.75rem; font-size:0.8rem;" onclick="handleLogout()" title="Logout">
+          🚪 ಲಾಗ್‌ಔಟ್ (Logout)
         </button>
       </div>
     </header>
@@ -118,6 +110,39 @@
   <!-- ====================================================
        MODALS
   ==================================================== -->
+
+  <!-- Modal: Society Login -->
+  <div class="modal-overlay" id="modal-login" style="display:none;">
+    <div class="modal-dialog" style="max-width:440px;">
+      <div class="modal-head">
+        <h3 style="font-size:1.1rem; color:var(--primary-navy);">🔐 ಸಂಘದ ಡಿಜಿಟಲ್ ಲಾಗಿನ್ (Society Login)</h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleLoginSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid" style="grid-template-columns:1fr;">
+            <div class="form-group">
+              <label class="form-label">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಅಥವಾ ಇಮೇಲ್ *</label>
+              <input type="text" id="login-identifier" class="form-input" required placeholder="ಉದಾ: 9845012345 / admin@society.coop" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಗುಪ್ತಪದ (Password) *</label>
+              <input type="password" id="login-password" class="form-input" required placeholder="ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" />
+            </div>
+            <div class="form-group" id="login-society-choice-group" style="display:none;">
+              <label class="form-label">ಸಂಘವನ್ನು ಆಯ್ಕೆಮಾಡಿ (Select Society) *</label>
+              <select id="login-society-select" class="form-input"></select>
+            </div>
+          </div>
+          <div id="login-error-msg" style="color:var(--primary-crimson); font-size:0.8rem; margin-top:0.5rem; display:none;"></div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary" id="btn-login-submit">ಪ್ರವೇಶಿಸಿ (Login) ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Modal: Weaver Operational Profile -->
   <div class="modal-overlay" id="modal-weaver-profile" style="display:none;">
@@ -160,23 +185,23 @@
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">ಸದಸ್ಯತ್ವ ಸಂಖ್ಯೆ *</label>
-              <input type="text" id="nw-mbr" class="form-input" required value="MBR/GDG/003" />
+              <input type="text" id="nw-mbr" class="form-input" required placeholder="ಉದಾ: MBR/2026/001" />
             </div>
             <div class="form-group">
               <label class="form-label">ನೇಕಾರರ ಹೆಸರು (ಕನ್ನಡ) *</label>
-              <input type="text" id="nw-name-kn" class="form-input" required value="ಈರಪ್ಪ ಹಡಪದ" />
+              <input type="text" id="nw-name-kn" class="form-input" required placeholder="ನೇಕಾರರ ಪೂರ್ಣ ಹೆಸರು" />
             </div>
             <div class="form-group">
               <label class="form-label">Weaver Name (English) *</label>
-              <input type="text" id="nw-name-en" class="form-input" required value="Eerappa Hadapad" />
+              <input type="text" id="nw-name-en" class="form-input" required placeholder="Full name in English" />
             </div>
             <div class="form-group">
               <label class="form-label">ಗ್ರಾಮ / ಊರು *</label>
-              <input type="text" id="nw-village" class="form-input" required value="ಬೆಟಗೇರಿ" />
+              <input type="text" id="nw-village" class="form-input" required placeholder="ಗ್ರಾಮದ ಹೆಸರು" />
             </div>
             <div class="form-group">
               <label class="form-label">ತಾಲೂಕು *</label>
-              <input type="text" id="nw-taluk" class="form-input" required value="Gadag" />
+              <input type="text" id="nw-taluk" class="form-input" required placeholder="ತಾಲೂಕು" />
             </div>
             <div class="form-group">
               <label class="form-label">ಮಗ್ಗದ ಮಾದರಿ</label>
@@ -188,11 +213,11 @@
             </div>
             <div class="form-group">
               <label class="form-label">ಕಾರ್ಯನಿರತ ಮಗ್ಗಗಳ ಸಂಖ್ಯೆ</label>
-              <input type="number" id="nw-looms" class="form-input" value="1" />
+              <input type="number" id="nw-looms" class="form-input" value="1" min="1" />
             </div>
             <div class="form-group">
               <label class="form-label">ಪೆಹ್ಚಾನ್ ಕಾರ್ಡ್ (Pehchan ID)</label>
-              <input type="text" id="nw-pehchan" class="form-input" value="KNT-GDG-100889" />
+              <input type="text" id="nw-pehchan" class="form-input" placeholder="KNT-..." />
             </div>
           </div>
         </div>
