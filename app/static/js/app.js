@@ -80,15 +80,19 @@ async function triggerFieldTranslation(sourceId, targetId, fromLang, toLang) {
 
 // Application Bootstrap
 document.addEventListener("DOMContentLoaded", async () => {
-  setLanguage(localStorage.getItem("society_lang") || "kn");
-  
-  if (api.token && api.tenantInfo) {
-    state.currentTenant = api.tenantInfo;
-    updateTenantUI();
-    showAppShell();
-    navigateTo("operations");
-  } else {
-    // Show Landing Page by default
+  try {
+    setLanguage(localStorage.getItem("society_lang") || "kn");
+    
+    if (api.token && api.tenantInfo) {
+      state.currentTenant = api.tenantInfo;
+      updateTenantUI();
+      showAppShell();
+      navigateTo("operations");
+    } else {
+      showLandingPage();
+    }
+  } catch (err) {
+    console.error("Initialization error:", err);
     showLandingPage();
   }
 
@@ -96,13 +100,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function showLandingPage() {
-  document.getElementById("landing-section").style.display = "block";
-  document.getElementById("app-shell").style.display = "none";
+  const l = document.getElementById("landing-section");
+  const a = document.getElementById("app-shell");
+  if (l) l.style.display = "block";
+  if (a) a.style.display = "none";
 }
 
 function showAppShell() {
-  document.getElementById("landing-section").style.display = "none";
-  document.getElementById("app-shell").style.display = "block";
+  const l = document.getElementById("landing-section");
+  const a = document.getElementById("app-shell");
+  if (l) l.style.display = "none";
+  if (a) a.style.display = "block";
 }
 
 function updateTenantUI() {
@@ -121,7 +129,7 @@ window.onLanguageChanged = () => {
 async function quickAccessTenant(slug) {
   try {
     const isGadag = slug === "gadag-weavers-coop";
-    const identifier = isGadag ? "admin@gadag.coop" : "admin@ilkal.coop";
+    const identifier = isGadag ? "admin@gadag.coop" : "secretary@ilkal.coop";
     const data = await api.login(identifier, "admin123", slug);
     state.currentTenant = data;
     state.cart = [];
@@ -1307,7 +1315,19 @@ async function submitFinalizeSociety() {
   try {
     const res = await api.finalizeOnboarding(payload);
     alert(`ಸಂಘದ ಡಿಜಿಟಲ್ ಕೇಂದ್ರ ಸೃಷ್ಟಿಯಾಗಿದೆ!\nಸಂಘ: ${res.legal_name_kn}\nಲಾಗಿನ್ ಸ್ಲಗ್: ${res.slug}`);
-    await quickAccessTenant(res.slug);
+    
+    // Immediately log into the newly created society workspace
+    try {
+      const authData = await api.login(payload.primary_phone, payload.admin_password, res.slug);
+      state.currentTenant = authData;
+      state.cart = [];
+      updateTenantUI();
+      showAppShell();
+      closeAllModals();
+      navigateTo("operations");
+    } catch (loginErr) {
+      showLandingPage();
+    }
   } catch (err) {
     alert("ಸಂಘ ರಚನೆ ವಿಫಲವಾಗಿದೆ: " + err.message);
   }
