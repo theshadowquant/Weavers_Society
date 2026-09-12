@@ -894,7 +894,7 @@ async function openAddPurchaseModal(prefillLotNo = "", prefillCount = "", prefil
     document.getElementById("pi-tax-rate").value = "5.0";
 
     recalcPurchaseTotals();
-    showModal("modal-add-purchase");
+    openModal("modal-add-purchase");
   } catch (err) {
     alert("ಖರೀದಿ ಫಾರ್ಮ್ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ: " + err.message);
   }
@@ -973,7 +973,7 @@ async function handlePurchaseSubmit(e) {
 
 function openAddYarnLotModal() {
   document.getElementById("nyl-lot-no").value = `LOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
-  showModal("modal-add-yarn-lot");
+  openModal("modal-add-yarn-lot");
 }
 
 async function handleYarnLotSubmit(e) {
@@ -997,7 +997,7 @@ async function handleYarnLotSubmit(e) {
 }
 
 function openAddSupplierModal() {
-  showModal("modal-add-supplier");
+  openModal("modal-add-supplier");
 }
 
 async function handleSupplierSubmit(e) {
