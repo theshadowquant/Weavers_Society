@@ -445,6 +445,142 @@
     </div>
   </div>
 
+  <!-- Modal: Yarn Hanchike Issue (Cottage Loom Allotment) -->
+  <div class="modal-overlay" id="modal-issue-allotment" style="display:none;">
+    <div class="modal-dialog" style="max-width:700px;">
+      <div class="modal-head">
+        <h3 style="font-size:1.05rem; color:var(--primary-navy); font-weight:700;">
+          🧵 ಗೃಹ ಕೈಮಗ್ಗ ನೂಲು ಹಂಚಿಕೆ (Cottage Loom Yarn Allotment / ಹಂಚಿಕೆ)
+        </h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleAllotmentSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">ಹಂಚಿಕೆ ಸಂಖ್ಯೆ (Allotment No) *</label>
+              <input type="text" id="al-no" class="form-input" required placeholder="ಉದಾ: ALLOT-2026-001" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ನೇಕಾರ ಸದಸ್ಯರು (Weaver) *</label>
+              <select id="al-weaver" class="form-input" required><option value="">— ಆಯ್ಕೆ ಮಾಡಿ —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಉತ್ಪನ್ನ (Product) *</label>
+              <select id="al-product" class="form-input" required><option value="">— ಆಯ್ಕೆ ಮಾಡಿ —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಗುರಿ ಸೀರೆಗಳ ಸಂಖ್ಯೆ (Target Pieces) *</label>
+              <input type="number" id="al-target" class="form-input" required value="10" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಎಳೆ ನೂಲು ಲಾಟ್ (Warp Yarn Lot) *</label>
+              <select id="al-warp-lot" class="form-input" required><option value="">— ಲಾಟ್ ಆಯ್ಕೆ —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಎಳೆ ನೂಲು Kgs (Warp Kgs) *</label>
+              <input type="number" step="0.01" id="al-warp-kgs" class="form-input" required value="5.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ತುಂಬಿ ನೂಲು ಲಾಟ್ (Weft Yarn Lot) *</label>
+              <select id="al-weft-lot" class="form-input" required><option value="">— ಲಾಟ್ ಆಯ್ಕೆ —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ತುಂಬಿ ನೂಲು Kgs (Weft Kgs) *</label>
+              <input type="number" step="0.01" id="al-weft-kgs" class="form-input" required value="4.50" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಮಗ್ಗದ ಕೂಲಿ / ಸೀರೆ ₹ (Piece Wage) *</label>
+              <input type="number" step="0.01" id="al-wage" class="form-input" required value="150.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ರೀಡ್ × ಪಿಕ್ ವಿಶೇಷಣ (Reed/Pick Specs)</label>
+              <input type="text" id="al-specs" class="form-input" placeholder="ಉದಾ: 56R × 64P" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಹಂಚಿಕೆ ದಿನಾಂಕ (Issue Date) *</label>
+              <input type="date" id="al-issue-date" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ನಿಗದಿತ ವಾಪಸಾತಿ ದಿನಾಂಕ (Expected Return) *</label>
+              <input type="date" id="al-return-date" class="form-input" required />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary" id="btn-save-allotment">ನೂಲು ಹಂಚಿ ದಾಖಲಿಸಿ ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Technical QC Inspection Receipt (GRN) -->
+  <div class="modal-overlay" id="modal-inspect-receipt" style="display:none;">
+    <div class="modal-dialog" style="max-width:620px;">
+      <div class="modal-head">
+        <h3 style="font-size:1.05rem; color:var(--primary-navy); font-weight:700;">
+          🔍 ನೇಯ್ದ ಬಟ್ಟೆ ಗುಣಮಟ್ಟ ತಪಾಸಣೆ ಮತ್ತು ಜಮೆ (QC Inspection Receipt / GRN)
+        </h3>
+        <button style="background:none; border:none; font-size:1.25rem; cursor:pointer;" onclick="closeAllModals()">✕</button>
+      </div>
+      <form onsubmit="handleInspectionSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">ಹಂಚಿಕೆ ಉಲ್ಲೇಖ (Allotment Reference) *</label>
+              <select id="insp-allotment" class="form-input" required><option value="">— ಸಕ್ರಿಯ ಹಂಚಿಕೆ ಆಯ್ಕೆ ಮಾಡಿ —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ತಪಾಸಣೆ ದಿನಾಂಕ (Inspection Date) *</label>
+              <input type="date" id="insp-date" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಸ್ವೀಕರಿಸುವ ಗೋದಾಮು (Receiving Warehouse)</label>
+              <select id="insp-wh" class="form-input"><option value="">ಡೀಫಾಲ್ಟ್ ಮಳಿಗೆ</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಸ್ವೀಕರಿಸಿದ ಸೀರೆಗಳು (Pieces Received) *</label>
+              <input type="number" id="insp-total" class="form-input" required value="10" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">1ನೇ ಗ್ರೇಡ್ (First Quality) *</label>
+              <input type="number" id="insp-first" class="form-input" required value="9" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">2ನೇ ಗ್ರೇಡ್ (Second Quality)</label>
+              <input type="number" id="insp-second" class="form-input" value="1" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ತಿರಸ್ಕೃತ (Rejected)</label>
+              <input type="number" id="insp-rejected" class="form-input" value="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಅಳೆದ ಮೀಟರ್ (Measured Meters) *</label>
+              <input type="number" step="0.01" id="insp-meters" class="form-input" required value="55.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಮರಳಿದ ಸ್ಕ್ರ್ಯಾಪ್ Kgs (Weft Scrap Returned)</label>
+              <input type="number" step="0.01" id="insp-scrap" class="form-input" value="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ಅನುಮತಿ ನಷ್ಟ % (Wastage Allowance)</label>
+              <input type="number" step="0.5" id="insp-wastage" class="form-input" value="3.0" />
+            </div>
+            <div class="form-group full">
+              <label class="form-label">ತಪಾಸಣೆ ಟಿಪ್ಪಣಿ (Inspection Notes)</label>
+              <input type="text" id="insp-notes" class="form-input" placeholder="ಗುಣಮಟ್ಟ ಟಿಪ್ಪಣಿ..." />
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-inst btn-inst-secondary" onclick="closeAllModals()">ರದ್ದುಮಾಡಿ</button>
+          <button type="submit" class="btn-inst btn-inst-primary" id="btn-save-inspection">ತಪಾಸಣೆ ದಾಖಲಿಸಿ ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="/static/js/i18n.js"></script>
   <script src="/static/js/api.js"></script>

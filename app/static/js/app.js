@@ -582,8 +582,8 @@ async function loadProductionSection() {
         <div class="card-inst-header">
           <div class="card-inst-title">⚙️ ಗೃಹ ಕೈಮಗ್ಗ ಉತ್ಪಾದನಾ ಹಂಚಿಕೆ ಪುಸ್ತಕ (Hanchike Allotments)</div>
           <div style="display:flex; gap:0.5rem;">
-            <button class="btn-inst btn-inst-secondary" onclick="openModal('modal-issue-allotment')">+ ನೂಲು ಹಂಚಿಕೆ (Hanchike Issue)</button>
-            <button class="btn-inst btn-inst-primary" onclick="openModal('modal-inspect-receipt')">+ ನೇಯ್ದ ಬಟ್ಟೆ ತಪಾಸಣೆ & ಜಮೆ (QC Receipt)</button>
+            <button class="btn-inst btn-inst-secondary" onclick="openIssueAllotmentModal()">+ ನೂಲು ಹಂಚಿಕೆ (Hanchike Issue)</button>
+            <button class="btn-inst btn-inst-primary" onclick="openInspectReceiptModal()">+ ನೇಯ್ದ ಬಟ್ಟೆ ತಪಾಸಣೆ & ಜಮೆ (QC Receipt)</button>
           </div>
         </div>
         <div class="ledger-table-wrap">
@@ -1034,6 +1034,130 @@ async function postExistingPurchase(invoiceId) {
     alert("ದಾಸ್ತಾನು ಯಶಸ್ವಿಯಾಗಿ ಗೋದಾಮಿಗೆ ಜಮಾ ಆಗಿದೆ!");
   } catch (err) {
     alert("ದಾಸ್ತಾನು ಜಮಾ ವಿಫಲವಾಗಿದೆ: " + err.message);
+  }
+}
+
+// -------------------------------------------------------------------
+// PRODUCTION MODAL OPENERS (populate dropdowns before showing)
+// -------------------------------------------------------------------
+async function openIssueAllotmentModal() {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const returnDate = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+    document.getElementById("al-no").value = `ALLOT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+    document.getElementById("al-issue-date").value = today;
+    document.getElementById("al-return-date").value = returnDate;
+
+    // Populate Weavers dropdown
+    const weavers = await api.getWeavers().catch(() => []);
+    const weaverSel = document.getElementById("al-weaver");
+    weaverSel.innerHTML = `<option value="">— ಆಯ್ಕೆ ಮಾಡಿ —</option>` + weavers.map(w =>
+      `<option value="${w.id}">${w.full_name_kn} (${w.membership_no})</option>`
+    ).join("");
+
+    // Populate Products dropdown
+    const invStatus = await api.getInventoryStatus().catch(() => ({ showroom_stock: [] }));
+    const prodSel = document.getElementById("al-product");
+    prodSel.innerHTML = `<option value="">— ಆಯ್ಕೆ ಮಾಡಿ —</option>` + (invStatus.showroom_stock || []).map(p =>
+      `<option value="${p.product_id || p.sku}">${p.name_kn} (${p.sku})</option>`
+    ).join("");
+
+    // Populate Yarn Lots dropdowns
+    const yarnLots = await api.getYarnLots().catch(() => []);
+    const lotOptions = `<option value="">— ಲಾಟ್ ಆಯ್ಕೆ —</option>` + yarnLots.map(y =>
+      `<option value="${y.id}">${y.lot_number} – ${y.count_spec} (${y.stock_kgs} Kgs)</option>`
+    ).join("");
+    document.getElementById("al-warp-lot").innerHTML = lotOptions;
+    document.getElementById("al-weft-lot").innerHTML = lotOptions;
+
+    openModal("modal-issue-allotment");
+  } catch (err) {
+    alert("ಹಂಚಿಕೆ ಫಾರ್ಮ್ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ: " + err.message);
+  }
+}
+
+async function handleAllotmentSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById("btn-save-allotment");
+  if (btn) btn.disabled = true;
+  try {
+    const payload = {
+      allotment_no: document.getElementById("al-no").value,
+      weaver_id: document.getElementById("al-weaver").value,
+      product_id: document.getElementById("al-product").value,
+      warp_yarn_lot_id: document.getElementById("al-warp-lot").value,
+      warp_issued_kgs: parseFloat(document.getElementById("al-warp-kgs").value),
+      weft_yarn_lot_id: document.getElementById("al-weft-lot").value,
+      weft_issued_kgs: parseFloat(document.getElementById("al-weft-kgs").value),
+      target_pieces: parseInt(document.getElementById("al-target").value),
+      agreed_piece_wage: parseFloat(document.getElementById("al-wage").value),
+      reed_pick_specs: document.getElementById("al-specs").value || null,
+      issue_date: document.getElementById("al-issue-date").value,
+      expected_return_date: document.getElementById("al-return-date").value
+    };
+    await api.createProductionAllotment(payload);
+    closeAllModals();
+    await loadProductionSection();
+    alert("ನೂಲು ಹಂಚಿಕೆ ಯಶಸ್ವಿಯಾಗಿ ದಾಖಲಾಗಿದೆ!");
+  } catch (err) {
+    alert("ಹಂಚಿಕೆ ದಾಖಲಿಸಲು ವಿಫಲವಾಗಿದೆ: " + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function openInspectReceiptModal() {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("insp-date").value = today;
+
+    // Populate active allotments dropdown
+    const allotments = await api.getProductionAllotments().catch(() => []);
+    const activeAllotments = allotments.filter(a => a.status === "WITH_WEAVER" || a.status === "ALLOTTED");
+    const inspSel = document.getElementById("insp-allotment");
+    inspSel.innerHTML = `<option value="">— ಸಕ್ರಿಯ ಹಂಚಿಕೆ ಆಯ್ಕೆ ಮಾಡಿ —</option>` + activeAllotments.map(a =>
+      `<option value="${a.id}">${a.allotment_no} – ${a.weaver_name_kn} (${a.target_pieces} ಸೀರೆ)</option>`
+    ).join("");
+
+    // Populate warehouse dropdown
+    const whs = await api.getTenantWarehouses().catch(() => []);
+    const whSel = document.getElementById("insp-wh");
+    whSel.innerHTML = whs.map(w =>
+      `<option value="${w.id}" ${w.storage_type === "FINISHED_SHOWROOM" ? "selected" : ""}>${w.name_kn}</option>`
+    ).join("") || `<option value="">ಡೀಫಾಲ್ಟ್ ಮಳಿಗೆ</option>`;
+
+    openModal("modal-inspect-receipt");
+  } catch (err) {
+    alert("ತಪಾಸಣೆ ಫಾರ್ಮ್ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ: " + err.message);
+  }
+}
+
+async function handleInspectionSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById("btn-save-inspection");
+  if (btn) btn.disabled = true;
+  try {
+    const payload = {
+      allotment_id: document.getElementById("insp-allotment").value,
+      receiving_warehouse_id: document.getElementById("insp-wh").value || null,
+      inspection_date: document.getElementById("insp-date").value,
+      pieces_received: parseInt(document.getElementById("insp-total").value),
+      first_quality_count: parseInt(document.getElementById("insp-first").value),
+      second_quality_count: parseInt(document.getElementById("insp-second").value) || 0,
+      rejected_count: parseInt(document.getElementById("insp-rejected").value) || 0,
+      measured_meters: parseFloat(document.getElementById("insp-meters").value),
+      weft_yarn_scrap_returned_kgs: parseFloat(document.getElementById("insp-scrap").value) || 0,
+      allowable_wastage_pct: parseFloat(document.getElementById("insp-wastage").value) || 3.0,
+      inspection_notes: document.getElementById("insp-notes").value || null
+    };
+    const res = await api.processTechnicalInspection(payload);
+    closeAllModals();
+    await loadProductionSection();
+    alert(`ಗುಣಮಟ್ಟ ತಪಾಸಣೆ ದಾಖಲಾಗಿದೆ!\nರಶೀದಿ: ${res.receipt_no}\nನಿವ್ವಳ ಜಮೆ ಕೂಲಿ: ₹${res.net_wages_credited?.toFixed(2) || 0}\nಉಳಿತಾಯ ನಿಧಿ ಕಡಿತ: ₹${res.thrift_fund_deduction?.toFixed(2) || 0}`);
+  } catch (err) {
+    alert("ತಪಾಸಣೆ ದಾಖಲಿಸಲು ವಿಫಲವಾಗಿದೆ: " + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -1799,6 +1923,38 @@ async function submitFinalizeSociety() {
   } catch (err) {
     alert("ಸಂಘ ರಚನೆ ವಿಫಲವಾಗಿದೆ: " + err.message);
   }
+}
+
+// -------------------------------------------------------------------
+// SALES PRODUCT SEARCH FILTER
+// -------------------------------------------------------------------
+function filterSalesProducts(query) {
+  const grid = document.getElementById("sales-products-grid");
+  if (!grid) return;
+  const q = query.toLowerCase().trim();
+  const filtered = q
+    ? state.cachedProducts.filter(p =>
+        p.name_kn.toLowerCase().includes(q) ||
+        (p.sku || "").toLowerCase().includes(q)
+      )
+    : state.cachedProducts;
+  grid.innerHTML = renderSalesProductCards(filtered);
+}
+
+// -------------------------------------------------------------------
+// SCHEMES SECTION (Government Scheme Allotments)
+// -------------------------------------------------------------------
+async function loadSchemesSection() {
+  const container = document.getElementById("sec-sales");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="card-inst">
+      <div class="card-inst-header">
+        <div class="card-inst-title">🏛️ ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು ಮತ್ತು ರಿಯಾಯಿತಿ (Government Schemes)</div>
+      </div>
+      <p style="color:var(--text-muted); padding:1rem;">ಈ ವಿಭಾಗ ಶೀಘ್ರದಲ್ಲೇ ಲಭ್ಯವಾಗಲಿದೆ (Coming Soon)</p>
+    </div>
+  `;
 }
 
 // -------------------------------------------------------------------
